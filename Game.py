@@ -8,7 +8,7 @@ import pygame.event
 from transitions import Machine
 
 from Grid import Grid, path_find, path_reconstruct
-from objects import BaseObject, Moveable
+from objects import BaseObject
 from constants import VICTORY_EVENT, LEFT_CLICK, RIGHT_CLICK
 from constants import PLAYER_IDLE, PLAYER_SELECTED, PLAYER_PATHING, PLAYER_MOVING, GAME_STATES
 

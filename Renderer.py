@@ -104,10 +104,11 @@ def draw_selected_path(surface: pygame.Surface, path: list, cell_size: int):
     if len(path) > 1:
         # Loop and draw squares based on where it came from and where it is going
         for i, current in enumerate(path):
-            previous = None
-            if i > 0: previous = path[i-1]
+            # print(i, current)
             following = None
-            if i < (len(path)-1): following = path[i+1]
+            if i > 0: following = path[i-1]
+            previous = None
+            if i < (len(path)-1): previous = path[i+1]
             draw_path_space(surface, current, previous, following, cell_size)
 
 def draw_path_space(surface: pygame.Surface, current, previous, following, cell_size: int):
