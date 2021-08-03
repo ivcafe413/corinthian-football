@@ -1,0 +1,10 @@
+{
+    "game_objects": [
+        {
+            "object_module": "objects.BasicTurret",
+            "object_class": "BasicTurret",
+            "x": 160,
+            "y": 304
+        }
+    ]
+}

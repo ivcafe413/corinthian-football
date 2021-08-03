@@ -1,0 +1,11 @@
+{
+    "game_objects": [
+        {
+            "object_module": "objects",
+            "object_class": "CircleCarrier",
+            "x": 182,
+            "y": 364,
+            "hp": 100
+        }
+    ]
+}
