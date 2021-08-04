@@ -5,8 +5,8 @@ import pygame
 ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
 
 # Mouse Click integers
-LEFT_CLICK = 1
-RIGHT_CLICK = 3
+BUTTON_LEFT_CLICK = 1
+BUTTON_RIGHT_CLICK = 3
 
 # Utilizing pygame custom events
 VICTORY_EVENT = pygame.USEREVENT+1
@@ -22,4 +22,4 @@ PLAYER_IDLE = 'player_idle'
 PLAYER_SELECTED = 'player_selected'
 PLAYER_PATHING = 'player_pathing'
 PLAYER_MOVING = 'player_moving'
-GAME_STATES = [PLAYER_IDLE, PLAYER_SELECTED, PLAYER_PATHING, PLAYER_MOVING]
+# GAME_STATES = [PLAYER_IDLE, PLAYER_SELECTED, PLAYER_PATHING, PLAYER_MOVING]

@@ -191,9 +191,24 @@ def draw_text_texture(surface: pygame.Surface, go: BaseObject, cell_size: int):
         #     )
 
 def draw_object_shape(surface: pygame.Surface, go: BaseObject, cell_size: int):
-    # TODO: More than just circle
-    pygame.draw.circle(surface,
-        COLOR_WHITE,
-        (go.x + (cell_size // 2), go.y + (cell_size // 2)),
-        10, # radius
-        2) # line thickness
+    shape = go.shape
+    if shape == "circle":
+        pygame.draw.circle(surface,
+            COLOR_WHITE,
+            (go.x + (cell_size // 2), go.y + (cell_size // 2)),
+            10, # radius
+            2 # line thickness
+            )
+    elif shape == "dot":
+        pygame.draw.circle(surface,
+            COLOR_WHITE,
+            (go.x + (cell_size //2), go.y + (cell_size // 2)),
+            5, # radius
+            0 # 0 means fill the circle (dot)
+            )
+    elif shape == "square":
+        pygame.draw.rect(surface,
+            COLOR_WHITE,
+            pygame.Rect(go.x, go.y, cell_size, cell_size),
+            0 # Fill the square
+            )

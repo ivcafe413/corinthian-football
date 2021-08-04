@@ -6,6 +6,19 @@
             "x": 182,
             "y": 364,
             "hp": 100
+        },
+        {
+            "object_module": "objects",
+            "object_class": "DotBall",
+            "x": 182,
+            "y": 182
+        },
+        {
+            "object_module": "objects",
+            "object_class": "SquareBlocker",
+            "x": 182,
+            "y": 208,
+            "hp": 200
         }
     ]
 }

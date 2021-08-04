@@ -1,3 +1,5 @@
+import logging
+
 import pygame
 import pygame.display
 
@@ -23,9 +25,13 @@ BOARD_ROWS = 15
 BOARD_SPACE_SIZE = 26 # px, length & width
 
 if __name__ == '__main__':
+    debug = False # TODO: Build-based parameters (os.getenv)?
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    # logging.info("test default log level")
     pygame.init()
-
-    debug = True # TODO: Build-based parameters (os.getenv)?
     
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen_bounds = screen.get_rect()

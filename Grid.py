@@ -46,7 +46,9 @@ class Grid(dict):
         for d in DIRECTIONS:
             neighbor = grid_space_neighbor(space, d)
             if neighbor in self:
-                yield neighbor
+                neighbor_object = self[neighbor]
+                if neighbor_object is None or not neighbor_object.solid: # Can't traverse through solid objects
+                    yield neighbor
 
     def cost(self, start: GridSpace, end: GridSpace):
         return 1 # TODO: More complex movement cost

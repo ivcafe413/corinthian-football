@@ -1,5 +1,5 @@
-import sys
 import logging
+
 import pygame
 import pygame.time
 import pygame.display
