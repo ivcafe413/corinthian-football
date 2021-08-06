@@ -1,6 +1,7 @@
 import logging
 
 import pygame
+import pygame.draw
 import pygame.display
 import pygame.font
 
@@ -12,8 +13,10 @@ COLOR_WHITE = (255, 255, 255)
 COLOR_DARK_GRAY = (25, 25, 25)
 COLOR_GRAY = (100, 100, 100)
 COLOR_LIGHT_GRAY = (130, 130, 130)
+# COLOR_LIGHT_GRAY_HOVER = (130, 130, 130, 64) # 128 = half alpha transparency
 COLOR_GREEN = (0, 50, 0)
 COLOR_DARK_YELLOW = (50, 50, 0)
+COLOR_RED = (200, 0, 0)
 
 DISPLAY_SURFACE = None # type: pygame.Surface
 BACKGROUND_SURFACE = None # type: pygame.Surface
@@ -25,23 +28,56 @@ def register_display_surface(surface: pygame.Surface):
 
     HUD_FONT = pygame.font.Font(None, 16) # Can't instantiate font before initialized
 
-def setup_background_surface(surface: pygame.Surface, game: Game):
+def setup_background_board(surface: pygame.Surface, game: Game):
     global BACKGROUND_SURFACE
     BACKGROUND_SURFACE = surface
 
-    # Game Board Draw
-    surface.fill(COLOR_DARK_GRAY)
+    # # Game Board Draw
+    # surface.fill(COLOR_DARK_GRAY)
 
-    # Terrain Draw
-    for tile in game.grid:
+    # Grid Line & Terrain Draw (Full tile draw)
+    for tile in game.grid: # tile: Space
+        pixel_x = tile.x * game.cell_size
+        pixel_y = tile.y * game.cell_size
+        # Draw grid lines
+        pygame.draw.lines(surface,
+            COLOR_RED,
+            True,
+            [
+                (pixel_x, pixel_y),
+                (pixel_x + game.cell_size, pixel_y),
+                (pixel_x + game.cell_size, pixel_y + game.cell_size),
+                (pixel_x, pixel_y + game.cell_size)
+            ]
+        )
+
         terrain = game.grid[tile].terrain
+        terrain_color = COLOR_DARK_GRAY
         if terrain == "Endzone":
             # Draw something different for the endzone
-            pygame.draw.rect(surface,
-                COLOR_GREEN,
-                pygame.Rect(tile.x * game.cell_size, tile.y * game.cell_size, game.cell_size, game.cell_size),
-                0 # Fill the square
-                )
+            terrain_color = COLOR_GREEN
+
+        pygame.draw.rect(surface,
+            terrain_color,
+            pygame.Rect(pixel_x + 1, pixel_y + 1,
+                game.cell_size - 1, game.cell_size - 1),
+            0 # Fill the square
+        )
+    # Grid line draw
+    # grid_line_color = COLOR_RED
+    # for x in range (1, game.columns):
+    #     pygame.draw.line(surface,
+    #         grid_line_color,
+    #         (x * game.cell_size, 0),
+    #         (x * game.cell_size, surface.get_height())
+    #     )
+
+    # for y in range (1, game.rows):
+    #     pygame.draw.line(surface,
+    #     grid_line_color,
+    #     (0, y * game.cell_size),
+    #     (surface.get_width(), y * game.cell_size)
+    # )
 
 def draw_debug(debug_message: str):
     pygame.display.set_caption(debug_message)
@@ -53,76 +89,78 @@ def draw_game(surface: pygame.Surface, game: Game):
     # Game board Border draw
     border_width = 5
 
-    border_top = game.board.top - border_width
-    border_left = game.board.left - border_width
-    border_bottom = game.board.bottom + border_width
-    border_right = game.board.right + border_width
+    border_top = (game.game_area.height // 2) - (game.board.height // 2) - border_width
+    border_left = (game.game_area.width // 2) - (game.board.width // 2) - border_width
+    border_bottom = (game.game_area.height // 2) + (game.board.height // 2) + border_width
+    border_right = (game.game_area.width // 2) + (game.board.width // 2) + border_width
 
     pygame.draw.line(surface, COLOR_WHITE, (border_left, border_top), (border_left, border_bottom), border_width)
     pygame.draw.line(surface, COLOR_WHITE, (border_left, border_top), (border_right, border_top), border_width)
     pygame.draw.line(surface, COLOR_WHITE, (border_right, border_top), (border_right, border_bottom), border_width)
     pygame.draw.line(surface, COLOR_WHITE, (border_left, border_bottom), (border_right, border_bottom), border_width)
 
-    # Draw the inner game board
-    draw_game_board(surface, game)
-
     # Final blit of Game Surface to screen
     # self.screen.blit(self.game_surface, game.game_area)
-    # Game Board to Screen
-    DISPLAY_SURFACE.blit(surface, game.board)
+    # Game to Screen
+    DISPLAY_SURFACE.blit(surface, game.game_area)
     # TODO: Use 'update' for targeted draw, performance
     # pygame.display.update(self.game_window)            
 
 def draw_game_board(surface: pygame.Surface, game: Game):
     # Blit from board copy
     surface.blit(BACKGROUND_SURFACE, (0, 0))
+        
+    # Selcted movement range fill
+    if game.selected_range is not None:
+        for space in game.selected_range:
+            # logging.info("range space: {0}".format(space))
+            # cell_surface = pygame.Surface((game.cell_size, game.cell_size))
+            # cell_surface.fill(COLOR_DARK_YELLOW)
+            # surface.blit(cell_surface,
+            #     (space.x * game.cell_size, space.y * game.cell_size))
+            pygame.draw.rect(surface,
+                COLOR_DARK_YELLOW,
+                pygame.Rect((space.x * game.cell_size) + 1, (space.y * game.cell_size) + 1,
+                    game.cell_size - 1, game.cell_size - 1),
+                0 # Fill the square
+            )
 
     # Grid Selected Fill
     if game.selected_object is not None:
         column = game.selected_object.x // game.cell_size
         row = game.selected_object.y // game.cell_size
 
-        cell_surface = pygame.Surface((game.cell_size, game.cell_size))
-        cell_surface.fill((COLOR_LIGHT_GRAY))
-        surface.blit(cell_surface,
-            (column*game.cell_size, row*game.cell_size))
-        
-    # Selcted movement range fill
-    if game.selected_range is not None:
-        for space in game.selected_range:
-            # logging.info("range space: {0}".format(space))
-            cell_surface = pygame.Surface((game.cell_size, game.cell_size))
-            cell_surface.fill((COLOR_DARK_YELLOW))
-            surface.blit(cell_surface,
-                (space.x * game.cell_size, space.y * game.cell_size))
-
-    # Mouse Hover Fill
-    if game.cursor_in_grid:
-        # 
-        mouse_column = game.game_cursor_x // game.cell_size
-        mouse_row = game.game_cursor_y // game.cell_size
-
-        cell_surface = pygame.Surface((game.cell_size, game.cell_size))
-        cell_surface.fill(COLOR_GRAY)
-        surface.blit(cell_surface,
-            (mouse_column*game.cell_size, mouse_row*game.cell_size))
-
-    # Grid line draw
-    grid_line_color = COLOR_GRAY
-    for x in range (1, game.columns):
-        pygame.draw.line(surface,
-        grid_line_color, (x*game.cell_size, 0), (x*game.cell_size, surface.get_height()))
-    for y in range (1, game.rows):
-        pygame.draw.line(surface,
-        grid_line_color, (0, y*game.cell_size), (surface.get_width(), y*game.cell_size))
+        # cell_surface = pygame.Surface((game.cell_size, game.cell_size))
+        # cell_surface.fill(COLOR_LIGHT_GRAY)
+        # surface.blit(cell_surface,
+        #     (column*game.cell_size, row*game.cell_size))
+        pygame.draw.rect(surface,
+            COLOR_LIGHT_GRAY,
+            pygame.Rect((column * game.cell_size) + 1, (row * game.cell_size) + 1,
+                game.cell_size - 1, game.cell_size - 1),
+            0 # Fill the square
+        )
 
     # Projected Path Draw
     if game.selected_path is not None:
         draw_selected_path(surface, game.selected_path, game.cell_size)
 
+    # Mouse Hover Fill
+    if game.cursor_in_grid:
+        mouse_column = game.game_cursor_x // game.cell_size
+        mouse_row = game.game_cursor_y // game.cell_size
+
+        cell_surface = pygame.Surface((game.cell_size, game.cell_size))
+        cell_surface.set_alpha(128) # Half transparancy
+        cell_surface.fill(COLOR_LIGHT_GRAY)
+        surface.blit(cell_surface,
+            (mouse_column*game.cell_size, mouse_row*game.cell_size))
+
     # Game Object - Text Texture rendering
     for go in game.game_objects:
         draw_game_object(surface, go, game.cell_size)
+
+    DISPLAY_SURFACE.blit(surface, game.board)
         
 def draw_game_object(surface: pygame.Surface, go: BaseObject, cell_size: int):
     # Switch on render_mode

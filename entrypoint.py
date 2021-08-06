@@ -18,8 +18,8 @@ HUD_HEIGHT = 160 # px
 # Game Board size params (B = G x C)
 # Ex: 20 * 16 = 320x320 board pixel size
 # Ex: 20 * 20 = 400x400
-BOARD_LENGTH = 390 # px
-BOARD_WIDTH = 390 # px
+BOARD_LENGTH = 390 + 1 # px, plus one for hangover border
+BOARD_WIDTH = 390 + 1 # px
 BOARD_COLUMNS = 15
 BOARD_ROWS = 15
 BOARD_SPACE_SIZE = 26 # px, length & width
@@ -39,9 +39,10 @@ if __name__ == '__main__':
     # Game Surface (Board + Peripheral)
     game_width = WIDTH - MENU_WIDTH # 800 - 160 = 640
     game_height = HEIGHT - HUD_HEIGHT # 600 - 160 = 440
-    # game_surface = pygame.Surface((game_width, game_height))
+    game_surface = pygame.Surface((game_width, game_height))
     # game_surface_bounds = game_surface.get_rect(topright=screen_bounds.topright)
-    game_window = pygame.Rect(160, 0, game_width, game_height)
+    # game_window = pygame.Rect(160, 0, game_width, game_height)
+    game_window = game_surface.get_rect(topright=screen_bounds.topright)
 
     # Surface for drawing game board
     game_board = pygame.Surface((BOARD_LENGTH, BOARD_WIDTH)).convert()
@@ -59,13 +60,16 @@ if __name__ == '__main__':
     # TODO: Corinthian Window
 
     game=Game(columns=BOARD_COLUMNS, rows=BOARD_ROWS, cell_size=BOARD_SPACE_SIZE,
-        board=game_board_bounds, hud=hud_bounds, menu=menu_bounds)
+        game_area=game_window,
+        board=game_board_bounds,
+        hud=hud_bounds,
+        menu=menu_bounds)
 
     # Initial game load from Driver
     # level_loader = LevelLoader(debug=debug)
     Driver.game_load(1, game)
 
     # Establish dictionary of surfaces for rendering
-    Driver.register_surfaces(display=screen, board=game_board, hud=hud, menu=menu)
+    Driver.register_surfaces(display=screen, game=game_surface, board=game_board, hud=hud, menu=menu)
     
     Driver.game_loop(game=game, debug=debug)

@@ -18,6 +18,7 @@ class Game:
     def __init__(
         self,
         board: pygame.Rect, columns: int, rows: int, cell_size: int,
+        game_area: pygame.Rect,
         hud: pygame.Rect,
         menu: pygame.Rect):
         # 2D rectangular game area
@@ -28,6 +29,7 @@ class Game:
         self.cell_size = cell_size
 
         # UI Areas/Rects
+        self.game_area = game_area
         self.hud = hud
         self.menu = menu
 

@@ -33,7 +33,7 @@ def register_surfaces(**surfaces: pygame.Surface):
 
 def game_loop(game: Game, debug: bool):
     Renderer.register_display_surface(RENDER_SURFACES['display'])
-    Renderer.setup_background_surface(RENDER_SURFACES['board'].copy(), game)
+    Renderer.setup_background_board(RENDER_SURFACES['board'].copy(), game)
     loop_time_elapsed = 0
 
     # check Game Over from game/state
@@ -48,7 +48,8 @@ def game_loop(game: Game, debug: bool):
             loop_time_elapsed -= LOOP_MS_PF
 
         # Game is caught up, render current game state
-        Renderer.draw_game(RENDER_SURFACES['board'], game) # TODO: passing in partial MS deltas
+        Renderer.draw_game(RENDER_SURFACES['game'], game) # TODO: passing in partial MS deltas
+        Renderer.draw_game_board(RENDER_SURFACES['board'], game)
 
         if game.hud_change:
             Renderer.draw_hud(RENDER_SURFACES['hud'], game)
