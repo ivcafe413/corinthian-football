@@ -1,4 +1,5 @@
 import logging
+import ctypes
 
 import pygame
 import pygame.time
@@ -32,8 +33,10 @@ def register_surfaces(**surfaces: pygame.Surface):
 
 def game_loop(game: Game, debug: bool):
     Renderer.register_display_surface(RENDER_SURFACES['display'])
+    Renderer.setup_background_surface(RENDER_SURFACES['board'].copy(), game)
     loop_time_elapsed = 0
-    # TODO: check Game Over from game/state
+
+    # check Game Over from game/state
     while not game.game_over:
         loop_time_elapsed += FPS_CLOCK.get_time()
 
@@ -66,7 +69,12 @@ def game_loop(game: Game, debug: bool):
         # Wait for next frame
         FPS_CLOCK.tick(TARGET_FPS)
 
+    # Game Over!
+    ctypes.windll.user32.MessageBoxW(0, "You Win!", "Corinthian Football", 0)
+
 def game_load(level: int, game: Game):
     # Logic to load game objects into game state
     # Initial Load - Pull map/objects from file (JSON)
+    # Load Map first to be able to add objects after
+    LevelLoader.load_map(level_id=level, into_grid=game.grid)
     LevelLoader.load_level(level_id=level, into_game=game)

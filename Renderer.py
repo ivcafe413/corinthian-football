@@ -1,3 +1,5 @@
+import logging
+
 import pygame
 import pygame.display
 import pygame.font
@@ -10,8 +12,11 @@ COLOR_WHITE = (255, 255, 255)
 COLOR_DARK_GRAY = (25, 25, 25)
 COLOR_GRAY = (100, 100, 100)
 COLOR_LIGHT_GRAY = (130, 130, 130)
+COLOR_GREEN = (0, 50, 0)
+COLOR_DARK_YELLOW = (50, 50, 0)
 
 DISPLAY_SURFACE = None # type: pygame.Surface
+BACKGROUND_SURFACE = None # type: pygame.Surface
 HUD_FONT = None # type: pygame.font.Font
 
 def register_display_surface(surface: pygame.Surface):
@@ -19,6 +24,24 @@ def register_display_surface(surface: pygame.Surface):
     DISPLAY_SURFACE = surface
 
     HUD_FONT = pygame.font.Font(None, 16) # Can't instantiate font before initialized
+
+def setup_background_surface(surface: pygame.Surface, game: Game):
+    global BACKGROUND_SURFACE
+    BACKGROUND_SURFACE = surface
+
+    # Game Board Draw
+    surface.fill(COLOR_DARK_GRAY)
+
+    # Terrain Draw
+    for tile in game.grid:
+        terrain = game.grid[tile].terrain
+        if terrain == "Endzone":
+            # Draw something different for the endzone
+            pygame.draw.rect(surface,
+                COLOR_GREEN,
+                pygame.Rect(tile.x * game.cell_size, tile.y * game.cell_size, game.cell_size, game.cell_size),
+                0 # Fill the square
+                )
 
 def draw_debug(debug_message: str):
     pygame.display.set_caption(debug_message)
@@ -47,12 +70,12 @@ def draw_game(surface: pygame.Surface, game: Game):
     # self.screen.blit(self.game_surface, game.game_area)
     # Game Board to Screen
     DISPLAY_SURFACE.blit(surface, game.board)
-    # Use 'update' for targeted draw, performance
-    # pygame.display.update(self.game_window)
+    # TODO: Use 'update' for targeted draw, performance
+    # pygame.display.update(self.game_window)            
 
 def draw_game_board(surface: pygame.Surface, game: Game):
-    # Game Board Draw TODO: Break out normal draw components
-    surface.fill(COLOR_DARK_GRAY)
+    # Blit from board copy
+    surface.blit(BACKGROUND_SURFACE, (0, 0))
 
     # Grid Selected Fill
     if game.selected_object is not None:
@@ -63,6 +86,15 @@ def draw_game_board(surface: pygame.Surface, game: Game):
         cell_surface.fill((COLOR_LIGHT_GRAY))
         surface.blit(cell_surface,
             (column*game.cell_size, row*game.cell_size))
+        
+    # Selcted movement range fill
+    if game.selected_range is not None:
+        for space in game.selected_range:
+            # logging.info("range space: {0}".format(space))
+            cell_surface = pygame.Surface((game.cell_size, game.cell_size))
+            cell_surface.fill((COLOR_DARK_YELLOW))
+            surface.blit(cell_surface,
+                (space.x * game.cell_size, space.y * game.cell_size))
 
     # Mouse Hover Fill
     if game.cursor_in_grid:
@@ -75,10 +107,6 @@ def draw_game_board(surface: pygame.Surface, game: Game):
         surface.blit(cell_surface,
             (mouse_column*game.cell_size, mouse_row*game.cell_size))
 
-    # Projected Path Draw
-    if game.selected_path is not None:
-        draw_selected_path(surface, game.selected_path, game.cell_size)
-
     # Grid line draw
     grid_line_color = COLOR_GRAY
     for x in range (1, game.columns):
@@ -87,6 +115,10 @@ def draw_game_board(surface: pygame.Surface, game: Game):
     for y in range (1, game.rows):
         pygame.draw.line(surface,
         grid_line_color, (0, y*game.cell_size), (surface.get_width(), y*game.cell_size))
+
+    # Projected Path Draw
+    if game.selected_path is not None:
+        draw_selected_path(surface, game.selected_path, game.cell_size)
 
     # Game Object - Text Texture rendering
     for go in game.game_objects:

@@ -2,70 +2,73 @@ from collections import namedtuple
 from queue import PriorityQueue
 from constants import NORTH, SOUTH, EAST, WEST
 
-_GridSpace = namedtuple("GridSpace", ["x", "y"])
+Space = namedtuple("Space", ["x", "y"])
+# TODO: Big TODO - Re-implement space with z/t value for terrain???
+_SpaceMeta = namedtuple("SpaceMeta", ["actor", "terrain"])
 
-def GridSpace(coordinates: tuple):
-    return _GridSpace(x=coordinates[0], y=coordinates[1])
+# def Space(coordinates: tuple):
+#     return _Space(x=coordinates[0], y=coordinates[1])
+def SpaceMeta(actor=None, terrain="Blank"):
+    # Actor is always required, Terrain can default
+    return _SpaceMeta(actor=actor, terrain=terrain)
 
 DIRECTIONS = [NORTH, SOUTH, WEST, EAST] # Maintained order, just cuz
-GRID_DIRECTIONS = [GridSpace((0, -1)), GridSpace((0, 1)), GridSpace((-1, 0)), GridSpace((1, 0))]
+GRID_DIRECTIONS = [Space(0, -1), Space(0, 1), Space(-1, 0), Space(1, 0)]
 
-def grid_direction(direction: int) -> GridSpace:
+def grid_direction(direction: int) -> Space:
     return GRID_DIRECTIONS[direction]
 
-def grid_space_add(a: GridSpace, b: GridSpace) -> GridSpace:
-    # print("grid_space_add_a: " + str(a))
-    # print("grid_space_add_b: " + str(b))
-
+def grid_space_add(a: Space, b: Space) -> Space:
     sum_x = a.x + b.x
     sum_y = a.y + b.y
-    return GridSpace((sum_x, sum_y))
+    return Space(sum_x, sum_y)
 
-def grid_space_neighbor(space: GridSpace, direction: int) -> GridSpace:
+def grid_space_neighbor(space: Space, direction: int) -> Space:
     return grid_space_add(space, grid_direction(direction))
 
 class Grid(dict):
-    def __setitem__(self, key: tuple, value):
-        super().__setitem__(GridSpace(key), value)
+    def __setitem__(self, key, values):
+        x,y = key
+        # print(values)
+        super().__setitem__(Space(x, y), SpaceMeta(*values))
 
-    def __getitem__(self, key: tuple):
-        return super().__getitem__(GridSpace(key))
+    def __getitem__(self, key) -> SpaceMeta:
+        x,y = key
+        return super().__getitem__(Space(x, y))
 
-    def __init__(self, columns: int, rows: int):
+    # def __init__(self):
         # 
-        self.columns = columns
-        self.rows = rows
-        for x in range(columns):
-            for y in range(rows):
-                self[(x, y)] = None
+        # self.columns = columns
+        # self.rows = rows
+        # for x in range(columns):
+        #     for y in range(rows):
+        #         self[x, y] = None
 
-    # def find(self, object):
-
-    def neighbors(self, space: GridSpace):
-        # space = GridSpace(coordinates)
+    def neighbors(self, space: Space):
+        # space = Space(coordinates)
         for d in DIRECTIONS:
             neighbor = grid_space_neighbor(space, d)
             if neighbor in self:
-                neighbor_object = self[neighbor]
+                neighbor_object = self[neighbor].actor
                 if neighbor_object is None or not neighbor_object.solid: # Can't traverse through solid objects
                     yield neighbor
 
-    def cost(self, start: GridSpace, end: GridSpace):
+    def cost(self, start: Space, end: Space):
         return 1 # TODO: More complex movement cost
 
+# A* Pathfinding 
 def path_find(start: tuple, goal: tuple, graph: Grid):
     """Pathfinding graph algorithm"""
-    start = GridSpace(start)
-    goal = GridSpace(goal)
-
-    # print("pathfind_start: " + str(start))
-    # print("pathfind_end: " + str(goal))
+    start = Space(*start)
+    goal = Space(*goal)
 
     frontier = PriorityQueue()
     frontier.put((0, start))
+
     came_from = dict()
-    cost_so_far = dict()
     came_from[start] = None
+
+    cost_so_far = dict()
     cost_so_far[start] = 0
 
     while not frontier.empty():
@@ -75,20 +78,45 @@ def path_find(start: tuple, goal: tuple, graph: Grid):
             break
 
         for next in graph.neighbors(current):
-            #
             new_cost = cost_so_far[current] + graph.cost(current, next)
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
-                priority = new_cost + heuristic(next, goal)
+                priority = new_cost + grid_distance(next, goal)
                 frontier.put((priority, next))
                 came_from[next] = current
 
     return came_from, cost_so_far
 
+# Dijkstra's Rangefinding
+def range_find(start: tuple, range: int, graph: Grid):
+    start = Space(*start)
+
+    frontier = PriorityQueue()
+    frontier.put((0, start))
+
+    came_from = dict()
+    came_from[start] = None
+
+    cost_so_far = dict()
+    cost_so_far[start] = 0
+
+    while not frontier.empty():
+        current = frontier.get()[1]
+        # No goal/early exit
+        for next in graph.neighbors(current):
+            new_cost = cost_so_far[current] + graph.cost(current, next)
+            if new_cost < range and (next not in cost_so_far or new_cost < cost_so_far[next]):
+                cost_so_far[next] = new_cost
+                priority = new_cost
+                frontier.put((priority, next))
+                came_from[next] = current
+    return came_from, cost_so_far
+
 def path_reconstruct(start: tuple, goal: tuple, search_result: dict) -> list:
     result_path = list()
-    start = GridSpace(start)
-    current = GridSpace(goal)
+    start = Space(*start)
+    current = Space(*goal)
+    # current = next(reversed(search_result))
     
     while search_result[current] is not None:
         # Add current location to reverse path
@@ -100,14 +128,14 @@ def path_reconstruct(start: tuple, goal: tuple, search_result: dict) -> list:
     # result_path.reverse()
     return result_path
 
-def heuristic(a: GridSpace, b: GridSpace):
+def grid_distance(a: Space, b: Space):
     # Manhattan distance, square grid
     return abs(a.x - b.x) + abs(a.y - b.y)
 
 def test_hash():
     test_coordinates = (0, 0)
-    space_a = GridSpace(test_coordinates)
-    space_b = GridSpace(test_coordinates)
+    space_a = Space(test_coordinates)
+    space_b = Space(test_coordinates)
     if not hash(space_a) == hash(space_b):
         print("Hash equality NOT working")
     else:
@@ -115,7 +143,7 @@ def test_hash():
 
 def test_hash_to_non_named_tuple():
     test_coordinates = (1, 1)
-    test_grid_space = GridSpace((1, 1))
+    test_grid_space = Space((1, 1))
     if not hash(test_coordinates) == hash(test_grid_space):
         print("CanNOT compare hashes from named/non-named tuples")
     else:
@@ -123,7 +151,7 @@ def test_hash_to_non_named_tuple():
 
 def test_compare_tuple_named_tuple():
     test_coordinates = (1, 1)
-    test_grid_space = GridSpace((1, 1))
+    test_grid_space = Space((1, 1))
 
     if not test_coordinates == test_grid_space:
         print("CanNOT compare equality from named/non-named tuples")
@@ -135,12 +163,12 @@ def test_grid_dict_subclass():
     grid = Grid(1, 1)
     # grid.map[space_a] = 5
     grid[test_coordinates] = 5
-    # space_c = GridSpace(0, 0)
+    # space_c = Space(0, 0)
     test_get = grid[test_coordinates]
     if not test_get == 5:
         print("Hashtable set/fetch NOT working")
     else:
-        print("Hashtable set and get by GridSpace coordinates working")
+        print("Hashtable set and get by Space coordinates working")
 
 def test_all():
     test_hash()

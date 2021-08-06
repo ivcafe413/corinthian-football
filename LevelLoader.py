@@ -1,28 +1,23 @@
 import os
+import logging
+
 import json
 import importlib
 
 from dotmap import DotMap
 
 from Game import Game
+from Grid import Grid
 from constants import ROOT_PATH
 
 LEVEL_DIRECTORY = os.path.join(ROOT_PATH, 'levels')
-
-# class LevelLoader:
-#     def __init__(self, debug: bool):
-#         # 
-#         self.debug = debug
-#         self.
+MAP_DIRECTORY = os.path.join(ROOT_PATH, "maps")
         
 def load_level(level_id: int, into_game: Game):
     #
     level_file = os.path.join(LEVEL_DIRECTORY, str(level_id) + '.json')
     with open(level_file) as f:
         level = json.load(f)
-
-    # if(debug):
-    #     print(json.dumps(level, indent=2, sort_keys=False))
 
     # Actually load the json object(level dictionary) into the game
     for go in level["game_objects"]:
@@ -34,5 +29,29 @@ def load_level(level_id: int, into_game: Game):
         class_ = getattr(module, dotmap_object.object_class)
 
         new_object = class_(dotmap_object)
-        # into_game.game_objects.append(new_object)
-        into_game.insert_game_object(new_object)
+        
+        # into_game.insert_game_object(new_object)
+        column = new_object.x // into_game.cell_size
+        row = new_object.y // into_game.cell_size
+
+        into_game.game_objects.append(new_object)
+        # terrain should be loaded by now
+        terrain = into_game.grid[column, row].terrain
+        into_game.grid[column, row] = new_object, terrain
+        logging.info(into_game.grid[column, row])
+
+def load_map(level_id: int, into_grid: Grid):
+    map_file = os.path.join(MAP_DIRECTORY, str(level_id) + '.txt')
+    with open(map_file) as f:
+        for y, map_line in enumerate(f):
+            clean_line = map_line.strip()
+            for x, map_tile in enumerate(clean_line):
+                insert_map_tile(map_tile, x, y, into_grid)
+
+def insert_map_tile(tile: chr, x: int, y: int, into_grid: Grid):
+    if tile == 'T':
+        terrain = "Endzone"
+    else: # Default to Blank
+        terrain = "Blank"
+
+    into_grid[x, y] = None, terrain

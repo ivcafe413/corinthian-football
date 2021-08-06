@@ -17,6 +17,9 @@ class BaseObject(ABC):
         self.selectable = True # Able to be left-click selected
         self.solid = True # Not able to path through if solid (right-click)
 
+        self.can_carry = False
+        self.carrying = None
+
     @abstractmethod
     def update(self):
         """ Called each frame for Game Object to update itself """
@@ -30,12 +33,16 @@ class Moveable(BaseObject):
         self.moving_y = 0
 
         self.speed = 10
+        self.movement_range = 5
 
     def move(self, dx: int, dy: int):
         """Additive pixel delta to move object X and Y.
         Can be called multiple times in one frame"""
         self.moving_x += dx
         self.moving_y += dy
+        # If we're carrying something, move it as well
+        if(self.carrying is not None):
+            self.carrying.move(dx, dy)
 
     def move_to(self, x, y):
         """Target pixel move, uses delta move under the hood.
@@ -70,6 +77,7 @@ class Moveable(BaseObject):
         if self.moving_x or self.moving_y: # If we're moving (at least one axis)
             self.x += self.moving_x
             self.y += self.moving_y
+
             # Reset the moving deltas to 0
             self.moving_x = 0
             self.moving_y = 0
@@ -81,6 +89,8 @@ class CircleCarrier(Moveable):
     def __init__(self, dot_map):
         super().__init__(dot_map)
         self.render_mode = "shape"
+
+        self.can_carry = True
 
     @property
     def shape(self):

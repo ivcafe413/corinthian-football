@@ -5,8 +5,8 @@ import pygame
 import pygame.mouse
 import pygame.event
 
-from Grid import Grid, path_find, path_reconstruct
-from objects import BaseObject
+from Grid import Grid, path_find, path_reconstruct, range_find
+from objects import BaseObject, Moveable, DotBall
 from constants import VICTORY_EVENT, BUTTON_LEFT_CLICK, BUTTON_RIGHT_CLICK
 from constants import PLAYER_IDLE, PLAYER_SELECTED, PLAYER_PATHING, PLAYER_MOVING
 
@@ -33,12 +33,12 @@ class Game:
 
         # Full list of game objects the Game is tracking for state
         self.game_objects = list()
-        self.grid = Grid(columns, rows)
+        self.grid = Grid()
 
         # Game state variables
         self.selected_object = None # type: BaseObject
         self.selected_path = None # type: list
-        self.can_click = True # type: bool
+        self.selected_range = None # type: dict
 
         self.game_over = False
         self.hud_change = True # Need to evaulate HUD on initialization
@@ -59,27 +59,6 @@ class Game:
             ignore_invalid_triggers=True
             # prepare_event='what_was_clicked')
         )
-    
-    # @property
-    # def selected_object(self):
-    #     return self._selected_object
-
-    # # TODO: Roll this into State Machine?
-    # @selected_object.setter
-    # def selected_object(self, go: BaseObject):
-    #     old_selected_object = self._selected_object
-    #     self._selected_object = go
-
-    #     if old_selected_object is not go: # compared by hash, yes?
-    #         # HUD will change
-    #         self.hud_change = True
-
-    def insert_game_object(self, go: BaseObject):
-        # TODO: Over coupled?
-        self.game_objects.append(go)
-        column = go.x // self.cell_size
-        row = go.y // self.cell_size
-        self.grid[(column, row)] = go
 
     def handle_event(self, event: pygame.event.Event):
         if event.type == pygame.QUIT:
@@ -95,9 +74,8 @@ class Game:
             self.mouse_motion_handler()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             logging.info("Clicked: ({0:d}, {1:d})".format(self.cursor_x, self.cursor_y))
-            
             self.mouse_button_handler(event.button)
-        elif type == VICTORY_EVENT:
+        elif event.type == VICTORY_EVENT:
             self.game_over = True
 
     def handle_events(self):
@@ -123,7 +101,7 @@ class Game:
             self.game_cursor_y = None
 
     def mouse_button_handler(self, button: int):        
-        if self.can_click and self.cursor_in_grid:
+        if self.state != PLAYER_MOVING and self.cursor_in_grid:
             logging.info("Clicked in grid: ({0:d}, {1:d})".format(self.game_cursor_x, self.game_cursor_y))
             # Offset absolute cursor position with board position for board cursor position
             column = self.game_cursor_x // self.cell_size
@@ -136,18 +114,32 @@ class Game:
                 # Command/Perform actions
                 self.right_click(column, row) # State Transition
 
+    # Helpers
+    def actor_in_space(self, column, row) -> BaseObject:
+        # Find object in this space
+        grid_object = self.grid[column, row]
+        logging.info("actor_in_space: " + str(grid_object.actor))
+        return grid_object.actor
+
+    def terrain_in_space(self, column, row):
+        return self.grid[column, row].terrain
+
     # State Callbacks
     def player_selection_change(self, column=0, row=0):
         # On Grid Object selection/deselection
         # self.selected_object = self.what_was_clicked(column, row) # Object or None
         self.selected_path = None # Deselect any selected path
+        self.selected_range = None
+
         self.hud_change = True
 
     def player_deselect_object(self, column=0, row=0):
         self.selected_object = None
 
     def player_select_object(self, column, row):
-        self.selected_object = self.what_was_clicked(column, row) # Object or None
+        self.selected_object = self.actor_in_space(column, row) # Object or None
+        # Build/display movement range (frontier, breadth-first)
+        self.selected_range, _ = range_find((column, row), self.selected_object.movement_range, self.grid)
 
     def player_select_path(self, column, row):
         starting_column = self.selected_object.x // self.cell_size
@@ -164,7 +156,7 @@ class Game:
 
     # Transition Conditions
     def selectable_object_clicked(self, column, row):
-        grid_object = self.what_was_clicked(column, row)
+        grid_object = self.actor_in_space(column, row)
         # print("selectable_object_clicked: " + str(grid_object is not None))
         # True if selectable object, False otherwise
         return grid_object is not None and grid_object.selectable
@@ -173,14 +165,9 @@ class Game:
         return self.selected_path[0] == (column, row)
 
     def valid_goal_selected(self, column, row):
-        path_target = self.what_was_clicked(column, row)
-        return path_target is None or not path_target.solid
-
-    def what_was_clicked(self, column, row):
-        # Find object in this grid space
-        # grid_object = self.grid[(column, row)]
-        # print("what_was_clicked: " + str(grid_object))
-        return self.grid[(column, row)]
+        path_target = self.actor_in_space(column, row)
+        # Incorporate Movement Range
+        return (column, row) in self.selected_range and (path_target is None or not path_target.solid)
 
     # Transition Callbacks
     def begin_moving(self, column, row):
@@ -190,20 +177,30 @@ class Game:
         # goal = 
         self.target_node = self.selected_path[-1] # last
 
-        self.grid[(start.x, start.y)] = None
+        self.grid[start] = None, self.grid[start].terrain
         # self.end_moving()
 
     def finalize_move(self):
         goal = self.selected_path[0]
-        # TODO: Big todo, don't overwrite objects on the Grid by assignment
-        # TODO: Maybe prevent assignment/overwrite of non-empty GridSpaces???
-        self.grid[(goal.x, goal.y)] = self.selected_object
+        self.evaluate_goal_arrival(self.selected_object, goal)
 
         self.target_node = None
         self.selected_object = None
         self.selected_path = None
 
-        self.can_click = True
+    def evaluate_goal_arrival(self, actor: Moveable, goal):
+        target, terrain = self.grid[goal]
+        # TODO: Need to build priority Dict for switch/case on target and terrain
+        # Priority 1: Game Enders
+        if terrain == "Endzone" and isinstance(actor.carrying, DotBall):
+            # FIXME: For now, Game over, but in reality, increment points, reset scrimmage
+            pygame.event.post(pygame.event.Event(VICTORY_EVENT))
+        # Priority 2: Ball events
+        elif isinstance(target, DotBall) and actor.can_carry:
+            actor.carrying = target
+            # self.grid[goal] = None, terrain
+
+        self.grid[goal] = actor, terrain
 
     # Game Update call (frame)
     def update(self):
