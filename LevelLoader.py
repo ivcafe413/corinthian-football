@@ -34,7 +34,7 @@ def load_level(level_id: int, into_game: Game):
         column = new_object.x // into_game.cell_size
         row = new_object.y // into_game.cell_size
 
-        into_game.game_objects.append(new_object)
+        into_game.game_objects.add(new_object)
         # terrain should be loaded by now
         terrain = into_game.grid[column, row].terrain
         into_game.grid[column, row] = new_object, terrain
@@ -51,7 +51,9 @@ def load_map(level_id: int, into_grid: Grid):
 def insert_map_tile(tile: chr, x: int, y: int, into_grid: Grid):
     if tile == 'T':
         terrain = "Endzone"
-    else: # Default to Blank
+    elif tile == '_':
         terrain = "Blank"
+    else: # Skip invalid tiles for arbitrary shapes
+        return
 
     into_grid[x, y] = None, terrain

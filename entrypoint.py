@@ -15,10 +15,13 @@ HEIGHT = 600 # px
 MENU_WIDTH = 160 # px
 HUD_HEIGHT = 160 # px
 
+# Game Surface (Board + Peripheral)
+GAME_WIDTH = WIDTH - MENU_WIDTH # 800 - 160 = 640
+GAME_HEIGHT = HEIGHT - HUD_HEIGHT # 600 - 160 = 440
 # Game Board size params (B = G x C)
 # Ex: 20 * 16 = 320x320 board pixel size
 # Ex: 20 * 20 = 400x400
-BOARD_LENGTH = 390 + 1 # px, plus one for hangover border
+BOARD_HEIGHT = 390 + 1 # px, plus one for hangover border
 BOARD_WIDTH = 390 + 1 # px
 BOARD_COLUMNS = 15
 BOARD_ROWS = 15
@@ -36,20 +39,17 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen_bounds = screen.get_rect()
 
-    # Game Surface (Board + Peripheral)
-    game_width = WIDTH - MENU_WIDTH # 800 - 160 = 640
-    game_height = HEIGHT - HUD_HEIGHT # 600 - 160 = 440
-    game_surface = pygame.Surface((game_width, game_height))
-    # game_surface_bounds = game_surface.get_rect(topright=screen_bounds.topright)
-    # game_window = pygame.Rect(160, 0, game_width, game_height)
+    game_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT)).convert()
     game_window = game_surface.get_rect(topright=screen_bounds.topright)
 
     # Surface for drawing game board
-    game_board = pygame.Surface((BOARD_LENGTH, BOARD_WIDTH)).convert()
+    # game_board = pygame.Surface((BOARD_LENGTH, BOARD_WIDTH)).convert()
+    game_board = game_surface.subsurface((GAME_WIDTH // 2) - (BOARD_WIDTH // 2),
+        (GAME_HEIGHT // 2) - (BOARD_HEIGHT // 2), BOARD_WIDTH, BOARD_HEIGHT) # NO convert()
     game_board_bounds = game_board.get_rect(center=game_window.center)
 
     # HUD surface
-    hud = pygame.Surface((game_width, HUD_HEIGHT)).convert()
+    hud = pygame.Surface((GAME_WIDTH, HUD_HEIGHT)).convert()
     hud_bounds = hud.get_rect(bottomright=screen_bounds.bottomright)
 
     # Menu surface
@@ -58,7 +58,6 @@ if __name__ == '__main__':
     menu_bounds = menu.get_rect(bottomleft=screen_bounds.bottomleft)
 
     # TODO: Corinthian Window
-
     game=Game(columns=BOARD_COLUMNS, rows=BOARD_ROWS, cell_size=BOARD_SPACE_SIZE,
         game_area=game_window,
         board=game_board_bounds,

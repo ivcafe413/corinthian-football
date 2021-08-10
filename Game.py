@@ -34,7 +34,7 @@ class Game:
         self.menu = menu
 
         # Full list of game objects the Game is tracking for state
-        self.game_objects = list()
+        self.game_objects = set()
         self.grid = Grid()
 
         # Game state variables
@@ -48,6 +48,8 @@ class Game:
         
         self.cursor_x = None
         self.cursor_y = None
+
+        self.cursor_on_board = False
         self.cursor_in_grid = False
 
         self.keydown_handlers = dict()
@@ -84,9 +86,14 @@ class Game:
         for event in pygame.event.get():
             self.handle_event(event)
 
-    def grid_collision_check(self):
+    def board_collision_check(self):
         # Calculare relative mouse position to game board and check bounds
         return self.cursor_x is not None and self.cursor_y is not None and self.board.collidepoint((self.cursor_x, self.cursor_y))
+
+    def grid_collision_check(self):
+        column = self.game_cursor_x // self.cell_size
+        row = self.game_cursor_y // self.cell_size
+        return (column, row) in self.grid
 
     def mouse_motion_handler(self):
         mouse_position = pygame.mouse.get_pos()
@@ -94,13 +101,16 @@ class Game:
         self.cursor_y = mouse_position[1]
 
         # Set board-relative cursor
-        self.cursor_in_grid = self.grid_collision_check()
-        if self.cursor_in_grid:
+        self.cursor_on_board = self.board_collision_check()
+        if self.cursor_on_board:
             self.game_cursor_x = self.cursor_x - self.board.x
             self.game_cursor_y = self.cursor_y - self.board.y
+
+            self.cursor_in_grid = self.grid_collision_check()
         else:
             self.game_cursor_x = None
             self.game_cursor_y = None
+            self.cursor_in_grid = False
 
     def mouse_button_handler(self, button: int):        
         if self.state != PLAYER_MOVING and self.cursor_in_grid:

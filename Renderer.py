@@ -63,21 +63,6 @@ def setup_background_board(surface: pygame.Surface, game: Game):
                 game.cell_size - 1, game.cell_size - 1),
             0 # Fill the square
         )
-    # Grid line draw
-    # grid_line_color = COLOR_RED
-    # for x in range (1, game.columns):
-    #     pygame.draw.line(surface,
-    #         grid_line_color,
-    #         (x * game.cell_size, 0),
-    #         (x * game.cell_size, surface.get_height())
-    #     )
-
-    # for y in range (1, game.rows):
-    #     pygame.draw.line(surface,
-    #     grid_line_color,
-    #     (0, y * game.cell_size),
-    #     (surface.get_width(), y * game.cell_size)
-    # )
 
 def draw_debug(debug_message: str):
     pygame.display.set_caption(debug_message)
@@ -100,7 +85,7 @@ def draw_game(surface: pygame.Surface, game: Game):
     pygame.draw.line(surface, COLOR_WHITE, (border_left, border_bottom), (border_right, border_bottom), border_width)
 
     # Final blit of Game Surface to screen
-    # self.screen.blit(self.game_surface, game.game_area)
+    # draw_game_board(RENDER_SURFACES)
     # Game to Screen
     DISPLAY_SURFACE.blit(surface, game.game_area)
     # TODO: Use 'update' for targeted draw, performance
@@ -114,10 +99,7 @@ def draw_game_board(surface: pygame.Surface, game: Game):
     if game.selected_range is not None:
         for space in game.selected_range:
             # logging.info("range space: {0}".format(space))
-            # cell_surface = pygame.Surface((game.cell_size, game.cell_size))
-            # cell_surface.fill(COLOR_DARK_YELLOW)
-            # surface.blit(cell_surface,
-            #     (space.x * game.cell_size, space.y * game.cell_size))
+
             pygame.draw.rect(surface,
                 COLOR_DARK_YELLOW,
                 pygame.Rect((space.x * game.cell_size) + 1, (space.y * game.cell_size) + 1,
@@ -130,10 +112,6 @@ def draw_game_board(surface: pygame.Surface, game: Game):
         column = game.selected_object.x // game.cell_size
         row = game.selected_object.y // game.cell_size
 
-        # cell_surface = pygame.Surface((game.cell_size, game.cell_size))
-        # cell_surface.fill(COLOR_LIGHT_GRAY)
-        # surface.blit(cell_surface,
-        #     (column*game.cell_size, row*game.cell_size))
         pygame.draw.rect(surface,
             COLOR_LIGHT_GRAY,
             pygame.Rect((column * game.cell_size) + 1, (row * game.cell_size) + 1,
@@ -160,7 +138,7 @@ def draw_game_board(surface: pygame.Surface, game: Game):
     for go in game.game_objects:
         draw_game_object(surface, go, game.cell_size)
 
-    DISPLAY_SURFACE.blit(surface, game.board)
+    # DISPLAY_SURFACE.blit(surface, game.board)
         
 def draw_game_object(surface: pygame.Surface, go: BaseObject, cell_size: int):
     # Switch on render_mode
@@ -251,14 +229,6 @@ def draw_text_texture(surface: pygame.Surface, go: BaseObject, cell_size: int):
             go.y + (cell_size // 2) + (texture_height * i_row),
             texture_font
         )
-        # for i_char, t_char in enumerate(t_row):
-        #     self.draw_text(
-        #         self.game_board,
-        #         t_char,
-        #         go.x + (texture_width*i_char),
-        #         go.y + (texture_height*i_row),
-        #         texture_font
-        #     )
 
 def draw_object_shape(surface: pygame.Surface, go: BaseObject, cell_size: int):
     shape = go.shape
