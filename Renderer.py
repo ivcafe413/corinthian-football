@@ -13,7 +13,8 @@ COLOR_WHITE = (255, 255, 255)
 COLOR_DARK_GRAY = (25, 25, 25)
 COLOR_GRAY = (100, 100, 100)
 COLOR_LIGHT_GRAY = (130, 130, 130)
-COLOR_GREEN = (0, 50, 0)
+COLOR_DARK_GREEN = (0, 50, 0)
+COLOR_LIGHT_GREEN = (0, 200, 0)
 COLOR_DARK_YELLOW = (50, 50, 0)
 COLOR_RED = (200, 0, 0)
 
@@ -55,7 +56,7 @@ def setup_background_board(surface: pygame.Surface, game: Game):
         terrain_color = COLOR_DARK_GRAY
         if terrain == "Endzone":
             # Draw something different for the endzone
-            terrain_color = COLOR_GREEN
+            terrain_color = COLOR_DARK_GREEN
 
         pygame.draw.rect(surface,
             terrain_color,
@@ -135,9 +136,13 @@ def draw_game_board(surface: pygame.Surface, game: Game):
     # for go in game.game_objects:
     for go in {s for s in game.game_objects if isinstance(s, Renderable)}:
         if go.renderer is None:
-            # FIXME: Better ObjectRenderer Memoization
+            # TODO: ObjectRenderer Memoization
             # TODO: Switch/case renderer registration
-            go.renderer = ShapeRenderer()
+            # TOOD: Set colors for teams correctly
+            object_color = COLOR_WHITE
+            if go in game.player_objects: object_color = COLOR_LIGHT_GREEN
+            elif go in game.cpu_objects: object_color = COLOR_RED
+            go.renderer = ShapeRenderer(color=object_color)
         go.draw(surface)
 
     # DISPLAY_SURFACE.blit(surface, game.board)

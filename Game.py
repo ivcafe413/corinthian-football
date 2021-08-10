@@ -6,7 +6,7 @@ import pygame.mouse
 import pygame.event
 
 from Grid import Grid, path_find, path_reconstruct, range_find
-from objects import BaseObject, Moveable, DotBall
+from objects import BaseObject, Moveable, Ball
 from constants import VICTORY_EVENT, BUTTON_LEFT_CLICK, BUTTON_RIGHT_CLICK
 from constants import PLAYER_IDLE, PLAYER_SELECTED, PLAYER_PATHING, PLAYER_MOVING
 
@@ -35,6 +35,9 @@ class Game:
 
         # Full list of game objects the Game is tracking for state
         self.game_objects = set()
+        self.player_objects = set()
+        self.cpu_objects = set()
+        self.neutral_objects = set()
         self.grid = Grid()
 
         # Game state variables
@@ -140,18 +143,20 @@ class Game:
     def player_selection_change(self, column=0, row=0):
         # On Grid Object selection/deselection
         # self.selected_object = self.what_was_clicked(column, row) # Object or None
-        self.selected_path = None # Deselect any selected path
-        self.selected_range = None
 
         self.hud_change = True
 
     def player_deselect_object(self, column=0, row=0):
         self.selected_object = None
+        self.selected_path = None # Deselect any selected path
+        self.selected_range = None
 
     def player_select_object(self, column, row):
-        self.selected_object = self.actor_in_space(column, row) # Object or None
-        # Build/display movement range (frontier, breadth-first)
-        self.selected_range, _ = range_find((column, row), self.selected_object.movement_range, self.grid)
+        clicked_object = self.actor_in_space(column, row) # Object or None
+        if clicked_object in self.player_objects:
+            self.selected_object = clicked_object
+            # Build/display movement range (frontier, breadth-first)
+            self.selected_range, _ = range_find((column, row), self.selected_object.movement_range, self.grid)
 
     def player_select_path(self, column, row):
         starting_column = self.selected_object.x // self.cell_size
@@ -204,13 +209,13 @@ class Game:
         target, terrain = self.grid[goal]
         # TODO: Need to build priority Dict for switch/case on target and terrain
         # Priority 1: Game Enders
-        if terrain == "Endzone" and isinstance(actor.carrying, DotBall):
+        if terrain == "Endzone" and isinstance(actor.carrying, Ball):
             # FIXME: For now, Game over, but in reality, increment points, reset scrimmage
             pygame.event.post(pygame.event.Event(VICTORY_EVENT))
         # Priority 2: Ball events
-        elif isinstance(target, DotBall) and actor.can_carry:
+        elif isinstance(target, Ball) and actor.can_carry:
             actor.carrying = target
-            # self.grid[goal] = None, terrain
+        # FIXME: Non can-carry objects erase the ball from the Grid inadventently!
 
         self.grid[goal] = actor, terrain
 

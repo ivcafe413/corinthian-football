@@ -7,11 +7,9 @@ import pygame.display
 from abc import ABC, abstractmethod
 from objects import Renderable
 
-COLOR_WHITE = (255, 255, 255)
-
 class ObjectRenderer(ABC):
-    def __init__(self):
-        pass
+    def __init__(self, color):
+        self.color = color
 
     @abstractmethod
     def draw_game_object(self, surface: pygame.Surface, go: Renderable):
@@ -19,8 +17,8 @@ class ObjectRenderer(ABC):
         pass # Abstract
 
 class ShapeRenderer(ObjectRenderer):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def draw_game_object(self, surface: pygame.Surface, go: Renderable):
         """Draws actor/game object based on shape definition.
@@ -32,21 +30,21 @@ class ShapeRenderer(ObjectRenderer):
         if go.shape == "circle":
             body_radius = (go.w / 3)
             pygame.draw.circle(surface,
-                COLOR_WHITE,
+                self.color,
                 body_center,
                 body_radius,
                 2 # line thickness
                 )
         elif go.shape == "dot":
             pygame.draw.circle(surface,
-                COLOR_WHITE,
+                self.color,
                 body_center,
                 5, # radius
                 0 # 0 means fill the circle (dot)
                 )
         elif go.shape == "square":
             pygame.draw.rect(surface,
-                COLOR_WHITE,
+                self.color,
                 pygame.Rect(go.x, go.y, go.w, go.h),
                 0 # Fill the square
                 )

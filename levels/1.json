@@ -1,20 +1,32 @@
 {
-    "game_objects": [
+    "neutral_objects": [
         {
             "object_module": "objects",
-            "object_class": "CircleCarrier",
-            "column": 7,
-            "row": 14,
-            "render_mode": "shape",
-            "shape": "circle"
-        },
-        {
-            "object_module": "objects",
-            "object_class": "DotBall",
+            "object_class": "Ball",
             "column": 7,
             "row": 7,
             "render_mode": "shape",
             "shape": "dot"
+        }
+    ],
+    "player_objects": [
+        {
+            "object_module": "objects",
+            "object_class": "Carrier",
+            "column": 7,
+            "row": 14,
+            "render_mode": "shape",
+            "shape": "circle"
+        }
+    ],
+    "cpu_objects": [
+        {
+            "object_module": "objects",
+            "object_class": "Blocker",
+            "column": 7,
+            "row": 1,
+            "render_mode": "shape",
+            "shape": "square"
         }
     ]
 }

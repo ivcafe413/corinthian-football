@@ -15,18 +15,6 @@ FPS_CLOCK = pygame.time.Clock() # TODO: Could DI this?
 
 RENDER_SURFACES = dict()
 
-# class Driver:
-#     def __init__(self,
-#         game: Game,
-#         renderer: Renderer, # TODO: Can flatten out Renderer to more static module
-#         # width: int, height: int
-#     ):
-#         self.game = game # <-- DI
-#         self.renderer = renderer # <-- DI
-
-#         self.clock = pygame.time.Clock() 
-#         self.
-
 def register_surfaces(**surfaces: pygame.Surface):
     global RENDER_SURFACES
     RENDER_SURFACES = surfaces

@@ -99,42 +99,23 @@ class Renderable(BaseObject):
         self.shape = shape
 
         self.renderer = None # 
-        
+
     def draw(self, surface):
         self.renderer.draw_game_object(surface, self)
 
-class CircleCarrier(Moveable, Renderable):
+class Carrier(Moveable, Renderable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # self.render_mode = "shape"
 
         self.can_carry = True
 
-    # @property
-    # def shape(self):
-    #     return "circle"
-
-    # def update(self):
-    #     # Inherited from super class, need to call supermethod in proper order
-    #     super().update()
-
-class DotBall(Moveable, Renderable):
+class Ball(Moveable, Renderable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # self.render_mode = "shape"
 
         self.selectable = False
         self.solid = False
 
-    # @property
-    # def shape(self):
-    #     return "dot"
-
-class SquareBlocker(Moveable):
+class Blocker(Moveable, Renderable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # self.render_mode = "shape"
-
-    # @property
-    # def shape(self):
-    #     return "square"

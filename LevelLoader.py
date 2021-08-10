@@ -8,6 +8,7 @@ import importlib
 
 from Game import Game
 from Grid import Grid
+from objects import BaseObject
 from constants import ROOT_PATH
 
 LEVEL_DIRECTORY = os.path.join(ROOT_PATH, 'levels')
@@ -20,34 +21,41 @@ def load_level(level_id: int, into_game: Game):
         level = json.load(f)
 
     # Actually load the json object(level dictionary) into the game
-    for go in level["game_objects"]:
-        # 'go' comes in as dictionary object
-        # DotMap transforms into pythyon object
-        # dotmap_object = DotMap(go)
-        # Module and Class of game object is referenced in the json
-        module = importlib.import_module(go.pop("object_module"))
-        class_ = getattr(module, go.pop("object_class"))
+    for go in [build_object(go, into_game) for go in level["neutral_objects"]]:
+        # no = build_object(go, into_game)
+        into_game.neutral_objects.add(go)
 
-        # BaseObject argument building
-        column = go.pop("column")
-        row = go.pop("row")
-        go["w"] = into_game.cell_size
-        go["h"] = into_game.cell_size
-        go["x"] = column * into_game.cell_size
-        go["y"] = row * into_game.cell_size
-        new_object = class_(**go)
-        
-        # into_game.insert_game_object(new_object)
-        # column = new_object.x // into_game.cell_size
-        # row = new_object.y // into_game.cell_size
+    for go in [build_object(go, into_game) for go in level["player_objects"]]:
+        # no = build_object(go, into_game)
+        into_game.player_objects.add(go)
 
-        into_game.game_objects.add(new_object) # set uses 'add', list uses 'append'
+    for go in [build_object(go, into_game) for go in level["cpu_objects"]]:
+        # no = build_object(go, into_game)
+        into_game.cpu_objects.add(go)
 
-        # terrain should be loaded by now
-        terrain = into_game.grid[column, row].terrain
-        into_game.grid[column, row] = new_object, terrain
+def build_object(go: dict, into_game: Game) -> BaseObject:
+    # 'go' comes in as dictionary object
+    # Module and Class of game object is referenced in the json
+    module = importlib.import_module(go.pop("object_module"))
+    class_ = getattr(module, go.pop("object_class"))
 
-        logging.info(into_game.grid[column, row])
+    # BaseObject argument building
+    column = go.pop("column")
+    row = go.pop("row")
+    go["w"] = into_game.cell_size
+    go["h"] = into_game.cell_size
+    go["x"] = column * into_game.cell_size
+    go["y"] = row * into_game.cell_size
+    new_object = class_(**go)
+
+    into_game.game_objects.add(new_object) # set uses 'add', list uses 'append'
+
+    # terrain should be loaded by now
+    terrain = into_game.grid[column, row].terrain
+    into_game.grid[column, row] = new_object, terrain
+
+    logging.info(into_game.grid[column, row])
+    return new_object
 
 def load_map(level_id: int, into_grid: Grid):
     map_file = os.path.join(MAP_DIRECTORY, str(level_id) + '.txt')
