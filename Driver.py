@@ -34,6 +34,7 @@ def register_surfaces(**surfaces: pygame.Surface):
 def game_loop(game: Game, debug: bool):
     Renderer.register_display_surface(RENDER_SURFACES['display'])
     Renderer.setup_background_board(RENDER_SURFACES['board'].copy(), game)
+
     loop_time_elapsed = 0
 
     # check Game Over from game/state
@@ -65,8 +66,6 @@ def game_loop(game: Game, debug: bool):
             # pygame.display.set_caption("FPS: {0:2f}".format(fps))
             Renderer.draw_debug("FPS: {0:2f}".format(fps))
 
-        # Testing full surface-subsurface blit
-        # RENDER_SURFACES['display'].blit(RENDER_SURFACES['display'], (0, 0))
         pygame.display.flip()
         # TODO: Reverse the flip and the clock tick?
         # Wait for next frame

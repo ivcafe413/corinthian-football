@@ -4,7 +4,7 @@ import logging
 import json
 import importlib
 
-from dotmap import DotMap
+# from dotmap import DotMap
 
 from Game import Game
 from Grid import Grid
@@ -23,21 +23,30 @@ def load_level(level_id: int, into_game: Game):
     for go in level["game_objects"]:
         # 'go' comes in as dictionary object
         # DotMap transforms into pythyon object
-        dotmap_object = DotMap(go)
+        # dotmap_object = DotMap(go)
         # Module and Class of game object is referenced in the json
-        module = importlib.import_module(dotmap_object.object_module)
-        class_ = getattr(module, dotmap_object.object_class)
+        module = importlib.import_module(go.pop("object_module"))
+        class_ = getattr(module, go.pop("object_class"))
 
-        new_object = class_(dotmap_object)
+        # BaseObject argument building
+        column = go.pop("column")
+        row = go.pop("row")
+        go["w"] = into_game.cell_size
+        go["h"] = into_game.cell_size
+        go["x"] = column * into_game.cell_size
+        go["y"] = row * into_game.cell_size
+        new_object = class_(**go)
         
         # into_game.insert_game_object(new_object)
-        column = new_object.x // into_game.cell_size
-        row = new_object.y // into_game.cell_size
+        # column = new_object.x // into_game.cell_size
+        # row = new_object.y // into_game.cell_size
 
-        into_game.game_objects.add(new_object)
+        into_game.game_objects.add(new_object) # set uses 'add', list uses 'append'
+
         # terrain should be loaded by now
         terrain = into_game.grid[column, row].terrain
         into_game.grid[column, row] = new_object, terrain
+
         logging.info(into_game.grid[column, row])
 
 def load_map(level_id: int, into_grid: Grid):

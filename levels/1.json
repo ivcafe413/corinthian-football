@@ -3,22 +3,18 @@
         {
             "object_module": "objects",
             "object_class": "CircleCarrier",
-            "x": 182,
-            "y": 364,
-            "hp": 100
+            "column": 7,
+            "row": 14,
+            "render_mode": "shape",
+            "shape": "circle"
         },
         {
             "object_module": "objects",
             "object_class": "DotBall",
-            "x": 182,
-            "y": 182
-        },
-        {
-            "object_module": "objects",
-            "object_class": "SquareBlocker",
-            "x": 182,
-            "y": 208,
-            "hp": 200
+            "column": 7,
+            "row": 7,
+            "render_mode": "shape",
+            "shape": "dot"
         }
     ]
 }

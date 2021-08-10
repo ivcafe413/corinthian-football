@@ -1,15 +1,19 @@
+import logging
+
 from abc import ABC, abstractmethod
+from pygame.rect import Rect
 
-class BaseObject(ABC):
-    def __init__(self, dot_map):
+class BaseObject(ABC, Rect):
+    def __init__(self, x, y, w, h, **kwargs):
+        # logging.info(kwargs)
         # Game Board-relative coordinates
-        self.x = dot_map.x
-        self.y = dot_map.y
+        Rect.__init__(self, x, y, w, h)
+        # self.x = dot_map.x
+        # self.y = dot_map.y
 
-        self.name = dot_map.name or self.__class__.__name__
-        self.hp = dot_map.hp or 1
+        self.name = kwargs.get("name", self.__class__.__name__)
         
-        self.info_list = ["name", "hp"] # List of parameters to display in informational panels
+        self.info_list = ["name"] # List of parameters to display in informational panels
 
         self.render_mode = "texture" # 'texture', 'shape', 'sprite'
         self.text_texture = """0""" #
@@ -20,15 +24,18 @@ class BaseObject(ABC):
         self.can_carry = False
         self.carrying = None
 
+    def __hash__(self):
+        return id(self)
+
     @abstractmethod
     def update(self):
-        """ Called each frame for Game Object to update itself """
+        """Called each frame for Game Object to update itself"""
         pass # Abstract
 
 class Moveable(BaseObject):
     """ Game Object that is able to be moved (passed a vector for the next update)"""
-    def __init__(self, dot_map):
-        super().__init__(dot_map)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.moving_x = 0
         self.moving_y = 0
 
@@ -85,38 +92,49 @@ class Moveable(BaseObject):
             # Do nothing for now
             super().update()
 
-class CircleCarrier(Moveable):
-    def __init__(self, dot_map):
-        super().__init__(dot_map)
-        self.render_mode = "shape"
+class Renderable(BaseObject):
+    def __init__(self, render_mode: str, shape="circle", **kwargs):
+        super().__init__(**kwargs) # Handled by MRO
+        self.render_mode = render_mode
+        self.shape = shape
+
+        self.renderer = None # 
+        
+    def draw(self, surface):
+        self.renderer.draw_game_object(surface, self)
+
+class CircleCarrier(Moveable, Renderable):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # self.render_mode = "shape"
 
         self.can_carry = True
 
-    @property
-    def shape(self):
-        return "circle"
+    # @property
+    # def shape(self):
+    #     return "circle"
 
-    def update(self):
-        # Inherited from super class, need to call supermethod in proper order
-        super().update()
+    # def update(self):
+    #     # Inherited from super class, need to call supermethod in proper order
+    #     super().update()
 
-class DotBall(Moveable):
-    def __init__(self, dot_map):
-        super().__init__(dot_map)
-        self.render_mode = "shape"
+class DotBall(Moveable, Renderable):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # self.render_mode = "shape"
 
         self.selectable = False
         self.solid = False
 
-    @property
-    def shape(self):
-        return "dot"
+    # @property
+    # def shape(self):
+    #     return "dot"
 
 class SquareBlocker(Moveable):
-    def __init__(self, dot_map):
-        super().__init__(dot_map)
-        self.render_mode = "shape"
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # self.render_mode = "shape"
 
-    @property
-    def shape(self):
-        return "square"
+    # @property
+    # def shape(self):
+    #     return "square"

@@ -1,4 +1,5 @@
 import logging
+from renderers import ShapeRenderer
 
 import pygame
 import pygame.draw
@@ -6,20 +7,19 @@ import pygame.display
 import pygame.font
 
 from Game import Game
-from objects import BaseObject
+from objects import Renderable
 
-# self.font = pygame.font.Font(None, self.cell_height)
 COLOR_WHITE = (255, 255, 255)
 COLOR_DARK_GRAY = (25, 25, 25)
 COLOR_GRAY = (100, 100, 100)
 COLOR_LIGHT_GRAY = (130, 130, 130)
-# COLOR_LIGHT_GRAY_HOVER = (130, 130, 130, 64) # 128 = half alpha transparency
 COLOR_GREEN = (0, 50, 0)
 COLOR_DARK_YELLOW = (50, 50, 0)
 COLOR_RED = (200, 0, 0)
 
 DISPLAY_SURFACE = None # type: pygame.Surface
 BACKGROUND_SURFACE = None # type: pygame.Surface
+
 HUD_FONT = None # type: pygame.font.Font
 
 def register_display_surface(surface: pygame.Surface):
@@ -68,9 +68,6 @@ def draw_debug(debug_message: str):
     pygame.display.set_caption(debug_message)
 
 def draw_game(surface: pygame.Surface, game: Game):
-    # Background Fill
-    # self.game_surface.fill((50, 50, 50))
-
     # Game board Border draw
     border_width = 5
 
@@ -134,18 +131,16 @@ def draw_game_board(surface: pygame.Surface, game: Game):
         surface.blit(cell_surface,
             (mouse_column*game.cell_size, mouse_row*game.cell_size))
 
-    # Game Object - Text Texture rendering
-    for go in game.game_objects:
-        draw_game_object(surface, go, game.cell_size)
+    # Game Object rendering
+    # for go in game.game_objects:
+    for go in {s for s in game.game_objects if isinstance(s, Renderable)}:
+        if go.renderer is None:
+            # FIXME: Better ObjectRenderer Memoization
+            # TODO: Switch/case renderer registration
+            go.renderer = ShapeRenderer()
+        go.draw(surface)
 
     # DISPLAY_SURFACE.blit(surface, game.board)
-        
-def draw_game_object(surface: pygame.Surface, go: BaseObject, cell_size: int):
-    # Switch on render_mode
-    if go.render_mode == "texture":
-        draw_text_texture(surface, go, cell_size)
-    elif go.render_mode == "shape":
-        draw_object_shape(surface, go, cell_size)
 
 def draw_selected_path(surface: pygame.Surface, path: list, cell_size: int):
     # path.reverse()
@@ -209,46 +204,24 @@ def draw_centered_text(surface: pygame.Surface, string: str, x: int, y: int, fon
     text_rect = text_surface.get_rect(center=(x,y))
     surface.blit(text_surface, text_rect)
 
-def draw_text_texture(surface: pygame.Surface, go: BaseObject, cell_size: int):
-    # Fetch the text texture of the object
-    texture = go.text_texture
-    # Split texture into array of string
-    texture_lines = [row for row in (raw.strip() for raw in texture.splitlines()) if row]
-    # Count number of rows for texture height
-    texture_height = cell_size // len(texture_lines)
-    # Calculate texture width based on relative height size, based on first row
-    # texture_width = cell_size // len(texture_lines[0])
+# TODO: Move Text Texture drawing to ObjectRenderer type
+# def draw_text_texture(surface: pygame.Surface, go: BaseObject, cell_size: int):
+#     # Fetch the text texture of the object
+#     texture = go.text_texture
+#     # Split texture into array of string
+#     texture_lines = [row for row in (raw.strip() for raw in texture.splitlines()) if row]
+#     # Count number of rows for texture height
+#     texture_height = cell_size // len(texture_lines)
+#     # Calculate texture width based on relative height size, based on first row
+#     # texture_width = cell_size // len(texture_lines[0])
 
-    texture_font = pygame.font.Font(None, texture_height)
+#     texture_font = pygame.font.Font(None, texture_height)
     
-    for i_row, t_row in enumerate(texture_lines):
-        draw_centered_text(
-            surface,
-            t_row,
-            go.x + (cell_size // 2),
-            go.y + (cell_size // 2) + (texture_height * i_row),
-            texture_font
-        )
-
-def draw_object_shape(surface: pygame.Surface, go: BaseObject, cell_size: int):
-    shape = go.shape
-    if shape == "circle":
-        pygame.draw.circle(surface,
-            COLOR_WHITE,
-            (go.x + (cell_size // 2), go.y + (cell_size // 2)),
-            10, # radius
-            2 # line thickness
-            )
-    elif shape == "dot":
-        pygame.draw.circle(surface,
-            COLOR_WHITE,
-            (go.x + (cell_size //2), go.y + (cell_size // 2)),
-            5, # radius
-            0 # 0 means fill the circle (dot)
-            )
-    elif shape == "square":
-        pygame.draw.rect(surface,
-            COLOR_WHITE,
-            pygame.Rect(go.x, go.y, cell_size, cell_size),
-            0 # Fill the square
-            )
+#     for i_row, t_row in enumerate(texture_lines):
+#         draw_centered_text(
+#             surface,
+#             t_row,
+#             go.x + (cell_size // 2),
+#             go.y + (cell_size // 2) + (texture_height * i_row),
+#             texture_font
+#         )
