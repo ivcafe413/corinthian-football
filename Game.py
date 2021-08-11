@@ -54,7 +54,9 @@ class Game:
         self.hud_change = True # Need to evaulate HUD on initialization
         self.hud_dictionary = dict()
         self.menu_change = True # Evaluated on initialization
-        self.menu_dictionary = dict()
+        self.menu_dictionary = {
+            "end_turn": "End Turn"
+        }
         
         # self.cursor_x = None
         # self.cursor_y = None

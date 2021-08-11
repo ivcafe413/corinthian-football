@@ -45,7 +45,9 @@ def game_loop(game: Game, debug: bool):
             # TODO: pygame.display.update(game.hud)
             game.hud_change = False # Reset
 
-        Renderer.draw_menu(RENDER_SURFACES['menu'], game)
+        if game.menu_change:
+            Renderer.draw_menu(RENDER_SURFACES['menu'], game)
+            game.menu_change = False
 
         # Renderer.full_blit(RENDER_SURFACES, "display")
 

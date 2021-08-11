@@ -18,6 +18,7 @@ HUD_HEIGHT = 80 # px
 # Game Surface (Board + Peripheral)
 GAME_WIDTH = WIDTH - MENU_WIDTH # 800 - 160 = 640
 GAME_HEIGHT = HEIGHT - HUD_HEIGHT # 600 - 160 = 440
+
 # Game Board size params (B = G x C)
 # Ex: 20 * 16 = 320x320 board pixel size
 # Ex: 20 * 20 = 400x400

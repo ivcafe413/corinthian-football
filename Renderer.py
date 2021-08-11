@@ -22,12 +22,14 @@ DISPLAY_SURFACE = None # type: pygame.Surface
 BACKGROUND_SURFACE = None # type: pygame.Surface
 
 HUD_FONT = None # type: pygame.font.Font
+MENU_FONT = None # type: pygame.font.Font
 
 def register_display_surface(surface: pygame.Surface):
-    global DISPLAY_SURFACE, HUD_FONT
+    global DISPLAY_SURFACE, HUD_FONT, MENU_FONT
     DISPLAY_SURFACE = surface
 
     HUD_FONT = pygame.font.Font(None, 16) # Can't instantiate font before initialized
+    MENU_FONT = pygame.font.Font(None, 32)
 
 def setup_background_board(surface: pygame.Surface, game: Game):
     global BACKGROUND_SURFACE
@@ -198,8 +200,33 @@ def draw_hud(surface: pygame.Surface, game: Game):
 
 def draw_menu(surface: pygame.Surface, game: Game):
     # Menu drawing
-    # TODO: Only Draw the Menu if it's changed
     surface.fill(COLOR_DARK_GRAY)
+    # Track Height
+    menu_spacing = 20 # px
+    border_width = 4 # px
+    gutter_width = 20 # px, each side
+
+    for v in game.menu_dictionary.values():
+        # 
+        _, font_height = MENU_FONT.size(v)
+        
+        # Draw Button
+        pygame.draw.rect(surface,
+            COLOR_WHITE,
+            pygame.Rect(gutter_width,
+                menu_spacing,
+                game.menu.width - (gutter_width * 2),
+                font_height * 2 # button height
+                ),
+                border_width,
+                10 # px of border radius
+            )
+
+        # Render button text
+        draw_centered_text(surface, v, game.menu.centerx, menu_spacing + font_height, MENU_FONT)
+
+        menu_spacing = menu_spacing + menu_spacing + (font_height * 2)
+
     DISPLAY_SURFACE.blit(surface, game.menu)
     # pygame.display.update(game.menu)
 
