@@ -17,6 +17,14 @@
             "row": 14,
             "render_mode": "shape",
             "shape": "circle"
+        },
+        {
+            "object_module": "objects",
+            "object_class": "Blocker",
+            "column": 7,
+            "row": 11,
+            "render_mode": "shape",
+            "shape": "square"
         }
     ],
     "cpu_objects": [

@@ -1,16 +1,20 @@
+import logging
+import random
+
 from collections import namedtuple
+from typing import NamedTuple
 from queue import PriorityQueue
+
+from objects import BaseObject
+
 from constants import NORTH, SOUTH, EAST, WEST
 
 Space = namedtuple("Space", ["x", "y"])
 # TODO: Big TODO - Re-implement space with z/t value for terrain???
-_SpaceMeta = namedtuple("SpaceMeta", ["actor", "terrain"])
-
-# def Space(coordinates: tuple):
-#     return _Space(x=coordinates[0], y=coordinates[1])
-def SpaceMeta(actor=None, terrain="Blank"):
-    # Actor is always required, Terrain can default
-    return _SpaceMeta(actor=actor, terrain=terrain)
+# SpaceMeta = namedtuple("SpaceMeta", ["actor", "terrain"], defaults=[None, "Blank"])
+class SpaceMeta(NamedTuple):
+    actor: BaseObject
+    terrain: str = "Blank"
 
 DIRECTIONS = [NORTH, SOUTH, WEST, EAST] # Maintained order, just cuz
 GRID_DIRECTIONS = [Space(0, -1), Space(0, 1), Space(-1, 0), Space(1, 0)]
@@ -36,14 +40,6 @@ class Grid(dict):
         x,y = key
         return super().__getitem__(Space(x, y))
 
-    # def __init__(self):
-        # 
-        # self.columns = columns
-        # self.rows = rows
-        # for x in range(columns):
-        #     for y in range(rows):
-        #         self[x, y] = None
-
     def neighbors(self, space: Space):
         # space = Space(coordinates)
         for d in DIRECTIONS:
@@ -52,6 +48,14 @@ class Grid(dict):
                 neighbor_object = self[neighbor].actor
                 if neighbor_object is None or not neighbor_object.solid: # Can't traverse through solid objects
                     yield neighbor
+
+    def random_neighbor(self, space: Space) -> Space:
+        valid_neighbors = list(self.neighbors(space))
+        logging.info(valid_neighbors)
+        # random.shuffle(valid_neighbors) # TODO: Unnecessary?
+        r = random.randint(0, len(valid_neighbors) - 1)
+        result = valid_neighbors[r]
+        return result
 
     def cost(self, start: Space, end: Space):
         return 1 # TODO: More complex movement cost
@@ -116,7 +120,6 @@ def path_reconstruct(start: tuple, goal: tuple, search_result: dict) -> list:
     result_path = list()
     start = Space(*start)
     current = Space(*goal)
-    # current = next(reversed(search_result))
     
     while search_result[current] is not None:
         # Add current location to reverse path
@@ -132,6 +135,7 @@ def grid_distance(a: Space, b: Space):
     # Manhattan distance, square grid
     return abs(a.x - b.x) + abs(a.y - b.y)
 
+# ----- Testing Area -----
 def test_hash():
     test_coordinates = (0, 0)
     space_a = Space(test_coordinates)

@@ -38,17 +38,18 @@ def setup_background_board(surface: pygame.Surface, game: Game):
 
     # Grid Line & Terrain Draw (Full tile draw)
     for tile in game.grid: # tile: Space
-        pixel_x = tile.x * game.cell_size
-        pixel_y = tile.y * game.cell_size
+        # pixel_x = tile.x * game.cell_size
+        # pixel_y = tile.y * game.cell_size
+        x, y = game.space_to_point(*tile)
         # Draw grid lines
         pygame.draw.lines(surface,
             COLOR_RED,
             True,
             [
-                (pixel_x, pixel_y),
-                (pixel_x + game.cell_size, pixel_y),
-                (pixel_x + game.cell_size, pixel_y + game.cell_size),
-                (pixel_x, pixel_y + game.cell_size)
+                (x, y),
+                (x + game.cell_size, y),
+                (x + game.cell_size, y + game.cell_size),
+                (x, y + game.cell_size)
             ]
         )
 
@@ -60,7 +61,7 @@ def setup_background_board(surface: pygame.Surface, game: Game):
 
         pygame.draw.rect(surface,
             terrain_color,
-            pygame.Rect(pixel_x + 1, pixel_y + 1,
+            pygame.Rect(x + 1, y + 1,
                 game.cell_size - 1, game.cell_size - 1),
             0 # Fill the square
         )
@@ -97,18 +98,19 @@ def draw_game_board(surface: pygame.Surface, game: Game):
     if game.selected_range is not None:
         for space in game.selected_range:
             # logging.info("range space: {0}".format(space))
-
+            x, y = game.space_to_point(*space)
             pygame.draw.rect(surface,
                 COLOR_DARK_YELLOW,
-                pygame.Rect((space.x * game.cell_size) + 1, (space.y * game.cell_size) + 1,
+                pygame.Rect(x + 1, y + 1,
                     game.cell_size - 1, game.cell_size - 1),
                 0 # Fill the square
             )
 
     # Grid Selected Fill
     if game.selected_object is not None:
-        column = game.selected_object.x // game.cell_size
-        row = game.selected_object.y // game.cell_size
+        # column = game.selected_object.x // game.cell_size
+        # row = game.selected_object.y // game.cell_size
+        column, row = game.point_to_space(*game.selected_object.topleft)
 
         pygame.draw.rect(surface,
             COLOR_LIGHT_GRAY,
@@ -123,14 +125,15 @@ def draw_game_board(surface: pygame.Surface, game: Game):
 
     # Mouse Hover Fill
     if game.cursor_in_grid:
-        mouse_column = game.game_cursor_x // game.cell_size
-        mouse_row = game.game_cursor_y // game.cell_size
+        # mouse_column = game.game_cursor_x // game.cell_size
+        # mouse_row = game.game_cursor_y // game.cell_size
+        mouse = game.point_to_space(game.game_cursor_x, game.game_cursor_y)
+        pixel = game.space_to_point(*mouse)
 
         cell_surface = pygame.Surface((game.cell_size, game.cell_size))
         cell_surface.set_alpha(128) # Half transparancy
         cell_surface.fill(COLOR_LIGHT_GRAY)
-        surface.blit(cell_surface,
-            (mouse_column*game.cell_size, mouse_row*game.cell_size))
+        surface.blit(cell_surface, pixel)
 
     # Game Object rendering
     # for go in game.game_objects:

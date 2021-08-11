@@ -51,9 +51,10 @@ class Moveable(BaseObject):
         if(self.carrying is not None):
             self.carrying.move(dx, dy)
 
-    def move_to(self, x, y):
+    def move_to(self, x: int, y: int):
         """Target pixel move, uses delta move under the hood.
-        Should only be called once per frame/update"""
+        Should only be called once per frame/update.
+        Tuple would need to be unpacked for usage"""
         # Calculate the delta and move
         dx = x - self.x
         dy = y - self.y

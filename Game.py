@@ -1,5 +1,6 @@
 import sys
 import logging
+from functools import cache
 
 import pygame
 import pygame.mouse
@@ -17,15 +18,16 @@ from StateMachine import STATES, TRANSITIONS
 class Game:
     def __init__(
         self,
-        board: pygame.Rect, columns: int, rows: int, cell_size: int,
+        board: pygame.Rect,
+        cell_size: int,
         game_area: pygame.Rect,
         hud: pygame.Rect,
         menu: pygame.Rect):
         # 2D rectangular game area
         self.board = board
         
-        self.columns = columns
-        self.rows = rows
+        # self.columns = columns
+        # self.rows = rows
         self.cell_size = cell_size
 
         # UI Areas/Rects
@@ -38,6 +40,8 @@ class Game:
         self.player_objects = set()
         self.cpu_objects = set()
         self.neutral_objects = set()
+
+        # Game grid (graph for location/movement/pathfinding)
         self.grid = Grid()
 
         # Game state variables
@@ -45,12 +49,15 @@ class Game:
         self.selected_path = None # type: list
         self.selected_range = None # type: dict
 
-        self.game_over = False
+        self.game_over = False # Win/loss condition
+
         self.hud_change = True # Need to evaulate HUD on initialization
         self.hud_dictionary = dict()
+        self.menu_change = True # Evaluated on initialization
+        self.menu_dictionary = dict()
         
-        self.cursor_x = None
-        self.cursor_y = None
+        # self.cursor_x = None
+        # self.cursor_y = None
 
         self.cursor_on_board = False
         self.cursor_in_grid = False
@@ -80,7 +87,7 @@ class Game:
         elif event.type == pygame.MOUSEMOTION:
             self.mouse_motion_handler()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            logging.info("Clicked: ({0:d}, {1:d})".format(self.cursor_x, self.cursor_y))
+            # logging.info("Clicked: ({0:d}, {1:d})".format(self.cursor_x, self.cursor_y))
             self.mouse_button_handler(event.button)
         elif event.type == VICTORY_EVENT:
             self.game_over = True
@@ -89,27 +96,43 @@ class Game:
         for event in pygame.event.get():
             self.handle_event(event)
 
-    def board_collision_check(self):
-        # Calculare relative mouse position to game board and check bounds
-        return self.cursor_x is not None and self.cursor_y is not None and self.board.collidepoint((self.cursor_x, self.cursor_y))
+    # Memoization
+    @cache
+    def point_to_space(self, x: int, y: int) -> tuple[int, int]:
+        column = x // self.cell_size
+        row = y // self.cell_size
+        return (column, row)
 
-    def grid_collision_check(self):
-        column = self.game_cursor_x // self.cell_size
-        row = self.game_cursor_y // self.cell_size
+    @cache
+    def space_to_point(self, column: int, row: int) -> tuple[int, int]:
+        x = column * self.cell_size
+        y = row * self.cell_size
+        return (x, y)
+
+    @cache
+    def board_collision_check(self, x: int, y: int) -> bool:
+        # Calculare relative mouse position to game board and check bounds
+        # result = self.board.collidepoint(x, y)
+        # logging.info(result)
+        return self.board.collidepoint(x, y)
+
+    @cache
+    def grid_collision_check(self, x: int, y: int) -> bool:
+        column, row = self.point_to_space(x, y)
         return (column, row) in self.grid
 
     def mouse_motion_handler(self):
         mouse_position = pygame.mouse.get_pos()
-        self.cursor_x = mouse_position[0]
-        self.cursor_y = mouse_position[1]
+        # self.cursor_x = mouse_position[0]
+        # self.cursor_y = mouse_position[1]
 
         # Set board-relative cursor
-        self.cursor_on_board = self.board_collision_check()
+        self.cursor_on_board = self.board_collision_check(mouse_position[0], mouse_position[1])
         if self.cursor_on_board:
-            self.game_cursor_x = self.cursor_x - self.board.x
-            self.game_cursor_y = self.cursor_y - self.board.y
+            self.game_cursor_x = mouse_position[0] - self.board.x
+            self.game_cursor_y = mouse_position[1] - self.board.y
 
-            self.cursor_in_grid = self.grid_collision_check()
+            self.cursor_in_grid = self.grid_collision_check(self.game_cursor_x, self.game_cursor_y)
         else:
             self.game_cursor_x = None
             self.game_cursor_y = None
@@ -119,8 +142,9 @@ class Game:
         if self.state != PLAYER_MOVING and self.cursor_in_grid:
             logging.info("Clicked in grid: ({0:d}, {1:d})".format(self.game_cursor_x, self.game_cursor_y))
             # Offset absolute cursor position with board position for board cursor position
-            column = self.game_cursor_x // self.cell_size
-            row = self.game_cursor_y // self.cell_size
+            # column = self.game_cursor_x // self.cell_size
+            # row = self.game_cursor_y // self.cell_size
+            column, row = self.point_to_space(self.game_cursor_x, self.game_cursor_y)
 
             if button == BUTTON_LEFT_CLICK:
                 # Select/Deselect actions
@@ -159,10 +183,10 @@ class Game:
             self.selected_range, _ = range_find((column, row), self.selected_object.movement_range, self.grid)
 
     def player_select_path(self, column, row):
-        starting_column = self.selected_object.x // self.cell_size
-        starting_row = self.selected_object.y // self.cell_size
+        # starting_column = self.selected_object.x // self.cell_size
+        # starting_row = self.selected_object.y // self.cell_size
 
-        start = (starting_column, starting_row)
+        start = self.point_to_space(self.selected_object.x, self.selected_object.y)
         goal = (column, row)
 
         came_from, _ = path_find(start, goal, self.grid)
@@ -210,12 +234,19 @@ class Game:
         # TODO: Need to build priority Dict for switch/case on target and terrain
         # Priority 1: Game Enders
         if terrain == "Endzone" and isinstance(actor.carrying, Ball):
-            # FIXME: For now, Game over, but in reality, increment points, reset scrimmage
+            # TODO: Increment points, reset scrimmage
             pygame.event.post(pygame.event.Event(VICTORY_EVENT))
         # Priority 2: Ball events
-        elif isinstance(target, Ball) and actor.can_carry:
-            actor.carrying = target
-        # FIXME: Non can-carry objects erase the ball from the Grid inadventently!
+        elif isinstance(target, Ball):
+            if actor.can_carry and not actor.carrying:
+                actor.carrying = target
+            else:
+                # Bounce the ball away, Blood Bowl style
+                bounce_space = self.grid.random_neighbor(goal)
+                _, bounce_terrain = self.grid[bounce_space]
+                target.move_to(*self.space_to_point(*bounce_space))
+                self.grid[bounce_space] = target, bounce_terrain
+                # TODO: More deterministic bounce
 
         self.grid[goal] = actor, terrain
 
@@ -223,16 +254,18 @@ class Game:
     def update(self):
         # Handle moving state
         if self.state == PLAYER_MOVING:
-            target_x = self.target_node.x * self.cell_size
-            target_y = self.target_node.y * self.cell_size
-            if self.selected_object.x == target_x and self.selected_object.y == target_y:
+            # target_x = self.target_node.x * self.cell_size
+            # target_y = self.target_node.y * self.cell_size
+            target = self.space_to_point(*self.target_node)
+
+            if self.selected_object.topleft == target:
                 if len(self.selected_path) == 1: # We've arrived
                     self.end_moving()
                 else: # There's path nodes left, pop and move on
                     self.selected_path.pop()
                     self.target_node = self.selected_path[-1]
             else:
-                self.selected_object.partial_move(target_x, target_y)
+                self.selected_object.partial_move(*target)
 
         # Update of all game objects
         for go in self.game_objects:

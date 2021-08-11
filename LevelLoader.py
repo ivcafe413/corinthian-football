@@ -44,8 +44,9 @@ def build_object(go: dict, into_game: Game) -> BaseObject:
     row = go.pop("row")
     go["w"] = into_game.cell_size
     go["h"] = into_game.cell_size
-    go["x"] = column * into_game.cell_size
-    go["y"] = row * into_game.cell_size
+    x, y = into_game.space_to_point(column, row)
+    go["x"] = x
+    go["y"] = y
     new_object = class_(**go)
 
     into_game.game_objects.add(new_object) # set uses 'add', list uses 'append'
