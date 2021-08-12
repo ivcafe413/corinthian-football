@@ -1,18 +1,21 @@
 # States
 from constants import PLAYER_IDLE, PLAYER_SELECTED, PLAYER_PATHING, PLAYER_MOVING
+from constants import ENEMY_TURN
 from transitions.core import State
 
 STATES = [
     State(PLAYER_IDLE, on_enter=["player_selection_change", "player_deselect_object"]),
     State(PLAYER_SELECTED, on_enter=["player_selection_change", "player_select_object"]),
     State(PLAYER_PATHING, on_enter="player_select_path"),
-    State(PLAYER_MOVING)
+    State(PLAYER_MOVING),
+    State(ENEMY_TURN)
 ]
 
 # Transitions
 LEFT_CLICK = "left_click"
 RIGHT_CLICK = "right_click"
 END_MOVING = "end_moving"
+END_TURN = 'end_turn'
 
 TRANSITIONS = [
     {
@@ -67,5 +70,16 @@ TRANSITIONS = [
         "source": PLAYER_MOVING,
         "dest": PLAYER_IDLE,
         "before": "finalize_move" # Has to happen before on_enter_idle
+    },
+    {
+        "trigger": END_TURN,
+        "source": [PLAYER_IDLE, PLAYER_SELECTED, PLAYER_PATHING],
+        "dest": ENEMY_TURN,
+        "after": "begin_policy_evaulation"
+    },
+    {
+        "trigger": END_TURN,
+        "source": ENEMY_TURN,
+        "dest": PLAYER_IDLE
     }
 ]

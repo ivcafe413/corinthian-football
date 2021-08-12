@@ -4,7 +4,7 @@ import pygame
 import pygame.display
 
 import Driver
-from Game import Game
+import Game
 # from Renderer import Renderer
 # import LevelLoader
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     menu_bounds = menu.get_rect(bottomleft=screen_bounds.bottomleft)
 
     # TODO: Corinthian Window
-    game=Game(cell_size=CELL_SIZE,
+    game=Game.Game(cell_size=CELL_SIZE,
         game_area=game_window,
         board=game_board_bounds,
         hud=hud_bounds,
@@ -69,6 +69,7 @@ if __name__ == '__main__':
     # Initial game load from Driver
     # level_loader = LevelLoader(debug=debug)
     Driver.game_load(1, game)
+    Game.menu_load(game, ["end_turn"])
 
     # Establish dictionary of surfaces for rendering
     Driver.register_surfaces(display=screen,

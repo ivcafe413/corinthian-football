@@ -5,6 +5,7 @@ import pygame
 import pygame.draw
 import pygame.display
 import pygame.font
+from pygame import Rect
 
 from Game import Game
 from objects import Renderable
@@ -63,7 +64,7 @@ def setup_background_board(surface: pygame.Surface, game: Game):
 
         pygame.draw.rect(surface,
             terrain_color,
-            pygame.Rect(x + 1, y + 1,
+            Rect(x + 1, y + 1,
                 game.cell_size - 1, game.cell_size - 1),
             0 # Fill the square
         )
@@ -103,7 +104,7 @@ def draw_game_board(surface: pygame.Surface, game: Game):
             x, y = game.space_to_point(*space)
             pygame.draw.rect(surface,
                 COLOR_DARK_YELLOW,
-                pygame.Rect(x + 1, y + 1,
+                Rect(x + 1, y + 1,
                     game.cell_size - 1, game.cell_size - 1),
                 0 # Fill the square
             )
@@ -116,7 +117,7 @@ def draw_game_board(surface: pygame.Surface, game: Game):
 
         pygame.draw.rect(surface,
             COLOR_LIGHT_GRAY,
-            pygame.Rect((column * game.cell_size) + 1, (row * game.cell_size) + 1,
+            Rect((column * game.cell_size) + 1, (row * game.cell_size) + 1,
                 game.cell_size - 1, game.cell_size - 1),
             0 # Fill the square
         )
@@ -204,26 +205,22 @@ def draw_menu(surface: pygame.Surface, game: Game):
     # Track Height
     menu_spacing = 20 # px
     border_width = 4 # px
-    gutter_width = 20 # px, each side
+    # gutter_width = 20 # px, each side
 
-    for v in game.menu_dictionary.values():
+    for v in game.menu_buttons:
         # 
-        _, font_height = MENU_FONT.size(v)
+        _, font_height = MENU_FONT.size(v.caption)
         
         # Draw Button
         pygame.draw.rect(surface,
             COLOR_WHITE,
-            pygame.Rect(gutter_width,
-                menu_spacing,
-                game.menu.width - (gutter_width * 2),
-                font_height * 2 # button height
-                ),
-                border_width,
-                10 # px of border radius
+            v, # Subclass of Rect
+            border_width,
+            10 # px of border radius
             )
 
         # Render button text
-        draw_centered_text(surface, v, game.menu.centerx, menu_spacing + font_height, MENU_FONT)
+        draw_centered_text(surface, v.caption, v.centerx, v.centery, MENU_FONT)
 
         menu_spacing = menu_spacing + menu_spacing + (font_height * 2)
 

@@ -22,4 +22,5 @@ PLAYER_IDLE = 'player_idle'
 PLAYER_SELECTED = 'player_selected'
 PLAYER_PATHING = 'player_pathing'
 PLAYER_MOVING = 'player_moving'
+ENEMY_TURN = 'enemy_turn'
 # GAME_STATES = [PLAYER_IDLE, PLAYER_SELECTED, PLAYER_PATHING, PLAYER_MOVING]

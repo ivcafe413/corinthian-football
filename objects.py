@@ -1,7 +1,7 @@
 import logging
 
 from abc import ABC, abstractmethod
-from pygame.rect import Rect
+from pygame import Rect
 
 class BaseObject(ABC, Rect):
     def __init__(self, x, y, w, h, **kwargs):
