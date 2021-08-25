@@ -4,11 +4,17 @@ from constants import ENEMY_TURN
 from transitions.core import State
 
 STATES = [
-    State(PLAYER_IDLE, on_enter=["player_selection_change", "player_deselect_object"]),
-    State(PLAYER_SELECTED, on_enter=["player_selection_change", "player_select_object"]),
-    State(PLAYER_PATHING, on_enter="player_select_path"),
+    State(PLAYER_IDLE,
+        on_enter=["player_selection_change", "player_deselect_object"]),
+    State(PLAYER_SELECTED,
+        on_enter=["player_selection_change", "player_select_object"]),
+    State(PLAYER_PATHING,
+        on_enter="player_select_path"),
     State(PLAYER_MOVING),
-    State(ENEMY_TURN)
+    State(ENEMY_TURN,
+        on_enter="menu_clear",
+        on_exit="menu_reload"
+    )
 ]
 
 # Transitions

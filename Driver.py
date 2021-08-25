@@ -1,3 +1,4 @@
+# Driver.py
 import logging
 import ctypes
 
@@ -9,8 +10,8 @@ from Game import Game
 import Renderer
 import LevelLoader
 
-TARGET_FPS=30
-LOOP_MS_PF=(1/TARGET_FPS)*1000
+TARGET_FPS = 30
+LOOP_MS_PF = (1 / TARGET_FPS) * 1000
 FPS_CLOCK = pygame.time.Clock() # TODO: Could DI this?
 
 RENDER_SURFACES = dict()
@@ -54,7 +55,8 @@ def game_loop(game: Game, debug: bool):
         if(debug):
             fps = FPS_CLOCK.get_fps()
             # pygame.display.set_caption("FPS: {0:2f}".format(fps))
-            Renderer.draw_debug("FPS: {0:2f}".format(fps))
+            # Renderer.draw_debug("FPS: {0:2f}".format(fps))
+            Renderer.draw_debug(f"FPS: {fps:2f}")
 
         pygame.display.flip()
         # TODO: Reverse the flip and the clock tick?

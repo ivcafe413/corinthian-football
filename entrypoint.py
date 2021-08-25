@@ -3,10 +3,8 @@ import logging
 import pygame
 import pygame.display
 
-import Driver
 import Game
-# from Renderer import Renderer
-# import LevelLoader
+import Driver
 
 # Full windows size params
 WIDTH = 800 # px

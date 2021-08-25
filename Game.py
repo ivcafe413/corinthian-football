@@ -68,7 +68,7 @@ class Game:
         # self.menu_dictionary = {
         #     "end_turn": "End Turn"
         # }
-        self.menu_buttons = []
+        self.menu_buttons = list[Menu.MenuItem]()
 
         self.game_cursor_x = None
         self.game_cursor_y = None
@@ -198,11 +198,11 @@ class Game:
     def terrain_in_space(self, column, row):
         return self.grid[column, row].terrain
 
+    # ----- State Machine Functions -----
     # State Callbacks
     def player_selection_change(self, column=0, row=0):
         # On Grid Object selection/deselection
         # self.selected_object = self.what_was_clicked(column, row) # Object or None
-
         self.hud_change = True
 
     def player_deselect_object(self, column=0, row=0):
@@ -229,6 +229,14 @@ class Game:
 
         self.selected_path = path
         logging.info(self.selected_path)
+
+    def menu_clear(self):
+        menu_load(self)
+        self.menu_change = True
+
+    def menu_reload(self):
+        menu_load(self, ["end_turn"])
+        # self.menu_change = True
 
     # Transition Conditions
     def selectable_object_clicked(self, column, row):
@@ -268,7 +276,7 @@ class Game:
         # AI decision making - Enemy Turn
         # TODO: Placeholder. Remove when AI is implemented
         ctypes.windll.user32.MessageBoxW(0, "Now it's your turn", "Enemy Says:", 0)
-        self.end_turn()
+        # self.end_turn()
 
     # TODO: Probably should move this into some kind of resolution priority switcher
     def evaluate_goal_arrival(self, actor: Moveable, goal):
@@ -338,7 +346,8 @@ action_switch = {
 }
 
 # Load the menu based on a list of strings
-def menu_load(game: Game, buttons: list):
+def menu_load(game: Game, buttons=[]):
+    # logging.info("menu clear")
     game.menu_buttons.clear()
 
     for i, button in enumerate(buttons):

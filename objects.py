@@ -2,6 +2,7 @@ import logging
 
 from abc import ABC, abstractmethod
 from pygame import Rect
+from renderers import ObjectRenderer
 
 class BaseObject(ABC, Rect):
     def __init__(self, x, y, w, h, **kwargs):
@@ -99,7 +100,7 @@ class Renderable(BaseObject):
         self.render_mode = render_mode
         self.shape = shape
 
-        self.renderer = None # 
+        self.renderer = None # type: ObjectRenderer
 
     def draw(self, surface):
         self.renderer.draw_game_object(surface, self)

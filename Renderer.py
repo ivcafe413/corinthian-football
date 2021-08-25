@@ -142,16 +142,12 @@ def draw_game_board(surface: pygame.Surface, game: Game):
     # for go in game.game_objects:
     for go in {s for s in game.game_objects if isinstance(s, Renderable)}:
         if go.renderer is None:
-            # TODO: ObjectRenderer Memoization
             # TODO: Switch/case renderer registration
-            # TOOD: Set colors for teams correctly
             object_color = COLOR_WHITE
             if go in game.player_objects: object_color = COLOR_LIGHT_GREEN
             elif go in game.cpu_objects: object_color = COLOR_RED
-            go.renderer = ShapeRenderer(color=object_color)
+            go.renderer = ShapeRenderer(object_color, go.shape)
         go.draw(surface)
-
-    # DISPLAY_SURFACE.blit(surface, game.board)
 
 def draw_selected_path(surface: pygame.Surface, path: list, cell_size: int):
     # path.reverse()
@@ -200,6 +196,7 @@ def draw_hud(surface: pygame.Surface, game: Game):
     # pygame.display.update(game.hud)
 
 def draw_menu(surface: pygame.Surface, game: Game):
+    # logging.info("re-drawing menu")
     # Menu drawing
     surface.fill(COLOR_DARK_GRAY)
     # Track Height
