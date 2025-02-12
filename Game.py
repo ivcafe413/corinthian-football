@@ -87,11 +87,13 @@ class Game:
             pygame.quit()
             sys.exit(0)
         elif event.type == pygame.KEYDOWN:
-            for handler in self.keydown_handlers[event.key]:
-                handler()
+            if event.key in self.keydown_handlers:
+                for handler in self.keydown_handlers[event.key]:
+                    handler()
         elif event.type == pygame.KEYUP:
-            for handler in self.keyup_handlers[event.key]:
-                handler()
+            if event.key in self.keyup_handlers:
+                for handler in self.keyup_handlers[event.key]:
+                    handler()
         elif event.type == pygame.MOUSEMOTION:
             self.mouse_motion_handler()
         elif event.type == pygame.MOUSEBUTTONDOWN:
